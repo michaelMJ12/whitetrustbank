@@ -47,11 +47,7 @@ SECRET_KEY = os.environ.get(
 #
 # Local default: True
 # Render: set DEBUG=False
-DEBUG = os.environ.get("DEBUG", "True").lower() in (
-    "true",
-    "1",
-    "yes",
-)
+DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
 
 
 # ALLOWED HOSTS
@@ -70,6 +66,7 @@ ALLOWED_HOSTS = [
     for host in os.environ.get(
         "ALLOWED_HOSTS",
         "127.0.0.1,localhost",
+        "whitetrustbank.onrender.com",
     ).split(",")
     if host.strip()
 ]
@@ -86,7 +83,9 @@ CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
         "CSRF_TRUSTED_ORIGINS",
-        "",
+        "https://whitetrustbank.com",
+        "https://www.whitetrustbank.com",
+        "https://whitetrustbank.onrender.com",
     ).split(",")
     if origin.strip()
 ]
