@@ -14,6 +14,13 @@ settings, email backend).
 from pathlib import Path
 import os
 
+# PRODUCTION NOTE:
+# Load this from an environment variable / secrets manager.
+# Never commit a real secret key to source control.
+SECRET_KEY = os.environ.get(
+    "VAULTRA_SECRET_KEY",
+    "dev-only-secret-key-change-me-before-deploying",
+)
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
@@ -23,6 +30,12 @@ ALLOWED_HOSTS = [
     "whitetrustbank.com",
     "www.whitetrustbank.com",
     ".onrender.com",
+]
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://whitetrustbank.com",
+    "https://www.whitetrustbank.com",
 ]
 
 
@@ -36,13 +49,6 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY
 # ============================================================
 
-# PRODUCTION NOTE:
-# Load this from an environment variable / secrets manager.
-# Never commit a real secret key to source control.
-SECRET_KEY = os.environ.get(
-    "VAULTRA_SECRET_KEY",
-    "dev-only-secret-key-change-me-before-deploying",
-)
 
 
 # PRODUCTION NOTE:
@@ -88,6 +94,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 
@@ -265,12 +272,18 @@ USE_TZ = True
 # ============================================================
 
 STATIC_URL = "static/"
-
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # PRODUCTION NOTE:
 # `python manage.py collectstatic` writes files here.
