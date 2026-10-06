@@ -1,47 +1,30 @@
-
 """
-Django settings for the Vaultra bank project.
+Django settings for the Vaultra / White Trust Bank project.
 
-This is a straightforward, single-server Django setup (SQLite, synchronous
-views, session auth) meant to be a solid, correct starting point — not a
-finished, hardened production deployment.
-
-Search "PRODUCTION NOTE" in this file for the handful of things you must
-change before shipping this for real (SECRET_KEY, DEBUG, database, HTTPS
-settings, email backend).
+Configured for:
+- Local development with SQLite
+- Render production with PostgreSQL
+- Environment-based secrets and configuration
+- WhiteNoise static file serving
+- Custom accounts.User authentication
+- Gmail SMTP configuration
 """
 
 from pathlib import Path
 import os
 
-# PRODUCTION NOTE:
-# Load this from an environment variable / secrets manager.
-# Never commit a real secret key to source control.
-SECRET_KEY = os.environ.get(
-    "VAULTRA_SECRET_KEY",
-    "dev-only-secret-key-change-me-before-deploying",
-)
-
-SECRET_KEY = os.environ.get("SECRET_KEY")
-
-DEBUG = os.environ.get("DEBUG", "False") == "True"
-
-ALLOWED_HOSTS = [
-    "whitetrustbank.com",
-    "www.whitetrustbank.com",
-    ".onrender.com",
-]
+from dotenv import load_dotenv
+import dj_database_url
 
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://whitetrustbank.com",
-    "https://www.whitetrustbank.com",
-]
-
+# ============================================================
+# BASE DIRECTORY / ENVIRONMENT
+# ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-from dotenv import load_dotenv
 
+# Load .env locally if it exists.
+# On Render, environment variables are provided by Render directly.
 load_dotenv(BASE_DIR / ".env")
 
 
@@ -49,18 +32,64 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY
 # ============================================================
 
+# IMPORTANT:
+# Set SECRET_KEY in Render Environment Variables.
+#
+# Local development can use the fallback below, but never rely
+# on this fallback for production.
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "dev-only-secret-key-change-me-before-deploying",
+)
 
 
-# PRODUCTION NOTE:
-# Default to False in production.
-# Set VAULTRA_DEBUG=1 only during development.
-DEBUG = os.environ.get("VAULTRA_DEBUG", "1") == "1"
+# DEBUG
+#
+# Local default: True
+# Render: set DEBUG=False
+DEBUG = os.environ.get("DEBUG", "True").lower() in (
+    "true",
+    "1",
+    "yes",
+)
 
 
-ALLOWED_HOSTS = os.environ.get(
-    "VAULTRA_ALLOWED_HOSTS",
-    "127.0.0.1,localhost",
-).split(",")
+# ALLOWED HOSTS
+#
+# Local:
+#   127.0.0.1,localhost
+#
+# Render:
+#   whitetrustbank.com,www.whitetrustbank.com,
+#   your-service.onrender.com
+#
+# You can override this through the ALLOWED_HOSTS
+# environment variable.
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        "ALLOWED_HOSTS",
+        "127.0.0.1,localhost",
+    ).split(",")
+    if host.strip()
+]
+
+
+# CSRF TRUSTED ORIGINS
+#
+# Render production should contain:
+# https://whitetrustbank.com
+# https://www.whitetrustbank.com
+#
+# Add your Render URL if necessary.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS",
+        "",
+    ).split(",")
+    if origin.strip()
+]
 
 
 # ============================================================
@@ -88,13 +117,16 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+
+    # WhiteNoise serves static files in production.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 
@@ -108,7 +140,9 @@ ROOT_URLCONF = "vaultra_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [
+            BASE_DIR / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -116,6 +150,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+
+                # Custom banking context processor
                 "banking.context_processors.notification_counts",
             ],
         },
@@ -124,6 +160,7 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = "vaultra_project.wsgi.application"
+
 ASGI_APPLICATION = "vaultra_project.asgi.application"
 
 
@@ -131,32 +168,30 @@ ASGI_APPLICATION = "vaultra_project.asgi.application"
 # DATABASE
 # ============================================================
 
-# PRODUCTION NOTE:
-# Swap SQLite for PostgreSQL/MySQL in production.
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-
-# Example MySQL configuration
+# Local development:
+#   SQLite is used when DATABASE_URL is not available.
 #
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "NAME": "whitetru_vaultra_db",
-#         "USER": "whitetru_vaultra_user",
-#         "PASSWORD": os.environ.get("VAULTRA_DB_PASSWORD"),
-#         "HOST": "localhost",
-#         "PORT": "3306",
-#         "OPTIONS": {
-#             "charset": "utf8mb4",
-#         },
-#     },
-# }
+# Render production:
+#   Render PostgreSQL provides DATABASE_URL automatically
+#   when the database is connected to the web service.
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # ============================================================
@@ -201,9 +236,9 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "accounts.User"
 
 
-# Login authenticates by email (see accounts/backends.py).
-# ModelBackend stays second so createsuperuser's username/password
-# still works for /django-admin/.
+# Login authenticates by email through the custom backend.
+# Django ModelBackend remains available for Django admin and
+# standard username/password authentication.
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.EmailBackend",
     "django.contrib.auth.backends.ModelBackend",
@@ -211,7 +246,9 @@ AUTHENTICATION_BACKENDS = [
 
 
 LOGIN_URL = "accounts:login"
+
 LOGIN_REDIRECT_URL = "banking:dashboard"
+
 LOGOUT_REDIRECT_URL = "landing"
 
 
@@ -219,39 +256,59 @@ LOGOUT_REDIRECT_URL = "landing"
 # GMAIL / EMAIL CONFIGURATION
 # ============================================================
 
-# Gmail SMTP server
+# Gmail SMTP configuration.
+#
+# NOTE:
+# Render Free may block outbound SMTP connections.
+# If SMTP does not work on Render, use Gmail API or an HTTP
+# email provider instead.
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"
+
 EMAIL_PORT = 587
+
 EMAIL_USE_TLS = True
+
 
 # Gmail address used to send application emails.
 #
-# Example:
+# Render environment variable:
+#
 # GMAIL_EMAIL=yourbank@gmail.com
-EMAIL_HOST_USER = os.environ.get("GMAIL_EMAIL", "")
+#
+EMAIL_HOST_USER = os.environ.get(
+    "GMAIL_EMAIL",
+    "",
+)
 
 
 # Gmail App Password.
 #
 # IMPORTANT:
-# This must be a Google App Password, NOT your normal Gmail password.
+# This must be a Google App Password,
+# NOT your normal Gmail password.
 #
-# Example:
+# Render environment variable:
+#
 # GMAIL_APP_PASSWORD=abcdefghijklmnop
-EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
+#
+EMAIL_HOST_PASSWORD = os.environ.get(
+    "GMAIL_APP_PASSWORD",
+    "",
+)
 
 
-# Address shown in the "From" field.
+# Address shown in the From field.
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
     EMAIL_HOST_USER,
 )
 
 
-# Optional email timeout.
-# Prevents a failed Gmail connection from hanging the request indefinitely.
+# Prevent failed email connections from hanging
+# the web request indefinitely.
 EMAIL_TIMEOUT = 20
 
 
@@ -264,6 +321,7 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Lagos"
 
 USE_I18N = True
+
 USE_TZ = True
 
 
@@ -271,22 +329,31 @@ USE_TZ = True
 # STATIC FILES
 # ============================================================
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+
+# Existing source static directory.
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# collectstatic output directory.
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
+# WhiteNoise storage.
+#
+# Django 4.2 supports the STORAGES setting.
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": (
+            "whitenoise.storage."
+            "CompressedManifestStaticFilesStorage"
+        ),
     },
 }
-
-# PRODUCTION NOTE:
-# `python manage.py collectstatic` writes files here.
 
 
 # ============================================================
@@ -300,18 +367,23 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # SECURITY / HTTPS
 # ============================================================
 
-# These only take effect when DEBUG=False behind HTTPS.
-
+# Secure cookies automatically when DEBUG=False.
 CSRF_COOKIE_SECURE = not DEBUG
 
 SESSION_COOKIE_SECURE = not DEBUG
 
+
+# Keep False initially while configuring Render/custom domain.
+# Once HTTPS is confirmed to work correctly, this can be changed
+# to True.
 SECURE_SSL_REDIRECT = False
 
-# PRODUCTION NOTE:
-# Change to True after HTTPS/TLS is correctly configured.
-#
-# SECURE_SSL_REDIRECT = True
+
+# Tell Django that Render's reverse proxy is handling HTTPS.
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https",
+)
 
 
 # ============================================================
