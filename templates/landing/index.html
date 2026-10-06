@@ -1,0 +1,612 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Vaultra — Banking, held to a higher standard{% endblock %}
+{% block extra_style %}
+  @media (prefers-reduced-motion: reduce) {
+    #aurora-canvas { display: none; }
+    .static-fallback { display: block !important; }
+  }
+{% endblock %}
+{% block content %}
+
+
+<!-- NAV -->
+<header class="fixed top-0 inset-x-0 z-40 border-b border-white/10 bg-ink/80 backdrop-blur-md" style="padding-top: env(safe-area-inset-top);">
+  <!-- Announcement bar -->
+  <div id="announce-bar" class="bg-gold text-ink text-xs sm:text-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-9 flex items-center justify-between gap-3">
+      <p class="truncate">New: watch every transfer move through our live transaction monitor in real time.</p>
+      <div class="flex items-center gap-3 shrink-0">
+        <a href="{% url 'accounts:login' %}?mode=signup" class="hidden sm:inline font-medium hover:underline whitespace-nowrap">Open an account →</a>
+        <button onclick="dismissAnnounce()" aria-label="Dismiss" class="text-ink/70 hover:text-ink leading-none px-1 py-1">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-2">
+    <a href="{% url 'landing' %}" class="flex items-center gap-2.5 min-w-0 shrink-0">
+      <img src="{% static 'images/logo.png' %}" alt="White Trust Bank" width="50" height="50" class="w-9 h-9 sm:w-[50px] sm:h-[50px] rounded-full object-cover shrink-0">
+      <span class="notranslate hidden min-[420px]:inline font-display font-semibold text-base sm:text-lg tracking-tight text-paper whitespace-nowrap" translate="no">White Trust Bank</span>
+    </a>
+
+    <nav class="hidden lg:flex items-center gap-7 text-sm text-mist/90">
+      <a href="#services" class="hover:text-white transition-colors">Services</a>
+      <a href="#cards" class="hover:text-white transition-colors">Cards</a>
+      <a href="#deposits" class="hover:text-white transition-colors">Deposits</a>
+      <a href="#security" class="hover:text-white transition-colors">Security</a>
+      <a href="#trust" class="hover:text-white transition-colors">About</a>
+      <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+      <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+    </nav>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Language dropdown -->
+      <label class="notranslate flex items-center gap-1.5 border border-white/15 rounded-full pl-2.5 pr-1.5 py-1.5 hover:bg-white/10 transition-colors" translate="no">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="shrink-0"><circle cx="12" cy="12" r="9" stroke="#F7F5EF" stroke-width="1.7"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" stroke="#F7F5EF" stroke-width="1.5"/></svg>
+        <select class="lang-select text-xs text-paper bg-transparent outline-none cursor-pointer w-[4.5rem] sm:w-auto sm:max-w-[10rem]" aria-label="Language"></select>
+      </label>
+
+      <!-- Notification bell -->
+      <div class="sm:relative">
+        <button id="notif-bell-btn" onclick="toggleNotifDropdown(event)" aria-label="Notifications" class="relative w-9 h-9 rounded-full border border-white/15 flex items-center justify-center hover:bg-white/10 transition-colors">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1112 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z" stroke="#F7F5EF" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 19a2 2 0 004 0" stroke="#F7F5EF" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span class="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-1 rounded-full bg-gold text-ink text-[9px] font-medium leading-[15px] text-center">3</span>
+        </button>
+        <div id="notif-dropdown" class="hidden absolute left-3 right-3 top-full mt-2 sm:left-auto sm:right-0 sm:w-72 max-h-[70dvh] overflow-y-auto bg-white border border-mist rounded-2xl shadow-xl">
+          <div class="px-4 py-3 border-b border-mist">
+            <p class="font-display text-sm text-ink">What's new</p>
+          </div>
+          <div class="divide-y divide-mist">
+            <div class="px-4 py-3 flex gap-3">
+              <span class="w-2 h-2 rounded-full bg-teal mt-1.5 shrink-0"></span>
+              <div><p class="text-sm text-ink font-medium">Live transaction tracking</p><p class="text-xs text-slate-450 mt-0.5">Watch transfers move through verification in real time.</p></div>
+            </div>
+            <div class="px-4 py-3 flex gap-3">
+              <span class="w-2 h-2 rounded-full bg-gold mt-1.5 shrink-0"></span>
+              <div><p class="text-sm text-ink font-medium">Fixed deposit rates updated</p><p class="text-xs text-slate-450 mt-0.5">18-month terms now earn 8.5% p.a.</p></div>
+            </div>
+            <div class="px-4 py-3 flex gap-3">
+              <span class="w-2 h-2 rounded-full bg-slate-450 mt-1.5 shrink-0"></span>
+              <div><p class="text-sm text-ink font-medium">Scheduled maintenance</p><p class="text-xs text-slate-450 mt-0.5">Brief downtime 2–3am WAT, Sept 20.</p></div>
+            </div>
+          </div>
+          <a href="{% url 'accounts:login' %}" class="block text-center text-xs font-medium text-teal py-3 border-t border-mist hover:bg-mist/40 transition-colors">Log in to see account alerts</a>
+        </div>
+      </div>
+
+      <a href="{% url 'accounts:login' %}" class="hidden sm:inline-block text-sm text-mist hover:text-white transition-colors px-3 py-2">Log in</a>
+      <a href="{% url 'accounts:login' %}?mode=signup" class="hidden sm:inline-block text-sm font-medium bg-gold text-ink px-4 py-2 rounded-full hover:bg-gold/90 transition-colors whitespace-nowrap">Open an account</a>
+
+      <!-- Hamburger (mobile / tablet) -->
+      <button id="menu-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu"
+        class="lg:hidden w-9 h-9 rounded-full border border-white/15 flex items-center justify-center hover:bg-white/10 transition-colors">
+        <svg id="menu-icon-open" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="#F7F5EF" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg id="menu-icon-close" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#F7F5EF" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu panel -->
+  <div id="mobile-menu" class="hidden lg:hidden absolute top-full inset-x-0 bg-ink/95 backdrop-blur-md border-t border-white/10 max-h-[calc(100dvh-7rem)] overflow-y-auto">
+    <nav class="px-4 py-2 flex flex-col text-base text-mist/90">
+      <a href="#services" class="mm-link py-3.5 border-b border-white/5">Services</a>
+      <a href="#cards" class="mm-link py-3.5 border-b border-white/5">Cards</a>
+      <a href="#deposits" class="mm-link py-3.5 border-b border-white/5">Deposits</a>
+      <a href="#security" class="mm-link py-3.5 border-b border-white/5">Security</a>
+      <a href="#trust" class="mm-link py-3.5 border-b border-white/5">About</a>
+      <a href="#faq" class="mm-link py-3.5 border-b border-white/5">FAQ</a>
+      <a href="#contact" class="mm-link py-3.5">Contact</a>
+    </nav>
+    <div class="px-4 pb-5 pt-2 grid gap-3 sm:hidden">
+      <a href="{% url 'accounts:login' %}" class="text-center text-paper border border-white/25 py-3 rounded-full">Log in</a>
+      <a href="{% url 'accounts:login' %}?mode=signup" class="text-center font-medium bg-gold text-ink py-3 rounded-full">Open an account</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative min-h-[100svh] flex items-center overflow-hidden bg-ink">
+  <canvas id="aurora-canvas" class="absolute inset-0 w-full h-full opacity-70"></canvas>
+  <div class="static-fallback hidden absolute inset-0 bg-gradient-to-br from-teal-dark via-ink to-ink"></div>
+  <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-ink/10"></div>
+  <div class="absolute inset-0 opacity-[0.04] mix-blend-overlay" style="background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22/></filter><rect width=%22100%22 height=%22100%22 filter=%22url(%23n)%22/></svg>')"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-32 sm:pt-36 pb-20 grid lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center w-full">
+    <div>
+      <p class="text-gold/90 text-xs sm:text-sm font-medium mb-4 sm:mb-5 tracking-wide">Member-insured deposits · est. 2011</p>
+      <h1 class="font-display text-[2.35rem] leading-[1.06] sm:text-6xl sm:leading-[1.03] lg:text-7xl lg:leading-[1.02] font-semibold text-paper max-w-2xl break-words">
+        Your money, moving as fast as your life does.
+      </h1>
+      <p class="mt-5 sm:mt-7 text-mist/80 text-base sm:text-xl max-w-lg leading-relaxed">
+        Checking, savings, and fixed deposits in one clear view — with a debit card you can freeze from your phone the instant something feels off.
+      </p>
+      <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
+        <a href="{% url 'accounts:login' %}?mode=signup" class="text-center bg-gold text-ink font-medium px-7 py-3.5 sm:py-4 text-base rounded-full hover:bg-gold/90 transition-colors">Open an account</a>
+        <a href="{% url 'accounts:login' %}" class="text-center text-paper border border-white/25 px-7 py-3.5 sm:py-4 text-base rounded-full hover:bg-white/5 transition-colors">Log in to online banking</a>
+      </div>
+      <dl class="mt-12 sm:mt-16 grid grid-cols-3 gap-4 sm:gap-6 max-w-lg">
+        <div>
+          <dt class="font-display text-2xl sm:text-4xl text-paper">8.5%</dt>
+          <dd class="text-xs sm:text-sm text-mist/60 mt-1.5">on fixed deposits</dd>
+        </div>
+        <div>
+          <dt class="font-display text-2xl sm:text-4xl text-paper">0$</dt>
+          <dd class="text-xs sm:text-sm text-mist/60 mt-1.5">monthly account fees</dd>
+        </div>
+        <div>
+          <dt class="font-display text-2xl sm:text-4xl text-paper">24/7</dt>
+          <dd class="text-xs sm:text-sm text-mist/60 mt-1.5">card lock control</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Floating card mock: a nod to the "instant card control" idea -->
+    <div class="relative hidden lg:block">
+      <div class="absolute -inset-10 bg-teal-light/20 blur-3xl rounded-full"></div>
+      <div class="relative bg-gradient-to-br from-teal to-teal-dark rounded-3xl p-7 w-80 aspect-[1.586] shadow-2xl shadow-black/40 border border-white/10 mx-auto">
+        <div class="flex justify-between items-start">
+          <span class="notranslate font-display text-paper text-sm tracking-wide" translate="no">White Trust Bank</span>
+          <span class="text-gold text-xs">Debit</span>
+        </div>
+        <div class="notranslate mt-9 text-paper/90 tracking-[0.2em] text-lg font-medium" translate="no">•••• •••• •••• 4417</div>
+        <div class="mt-6 flex justify-between items-end text-paper/70 text-xs">
+          <span class="notranslate" translate="no">MAXWELL CHARLES</span>
+          <span class="notranslate" translate="no">09 / 29</span>
+        </div>
+      </div>
+      <div class="relative mt-5 mx-auto w-72 bg-ink/60 border border-white/10 rounded-2xl px-5 py-4 flex items-center justify-between backdrop-blur">
+        <div>
+          <p class="text-mist/60 text-xs">Card status</p>
+          <p class="text-paper text-sm font-medium mt-0.5">Active &amp; protected</p>
+        </div>
+        <span class="w-11 h-6 rounded-full bg-teal-light/80 relative">
+          <span class="absolute right-0.5 top-0.5 w-5 h-5 rounded-full bg-paper"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <a href="#services" class="hidden sm:flex absolute bottom-8 left-1/2 -translate-x-1/2 text-mist/50 text-xs flex-col items-center gap-2">
+    <span>Scroll</span>
+    <span class="w-px h-8 bg-mist/30"></span>
+  </a>
+</section>
+
+<!-- SERVICES -->
+<section id="services" class="py-16 sm:py-24 lg:py-28 px-4 sm:px-6 lg:px-10 bg-paper">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid lg:grid-cols-[0.6fr_1fr] gap-10 lg:gap-20">
+      <div>
+        <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink leading-tight">
+          Everything runs through one account view.
+        </h2>
+        <p class="mt-4 text-slate-450 leading-relaxed max-w-sm">
+          No separate apps for savings and cards. Balances, transfers, and fixed deposits sit on a single dashboard.
+        </p>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-px bg-mist rounded-2xl overflow-hidden border border-mist">
+        <div class="bg-paper p-6 sm:p-8">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal font-display font-semibold">01</div>
+          <h3 class="mt-5 font-display text-lg text-ink">Everyday checking</h3>
+          <p class="mt-2 text-sm text-slate-450 leading-relaxed">Instant transfers, no minimum balance, and same-day payroll deposits.</p>
+        </div>
+        <div class="bg-paper p-6 sm:p-8">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal font-display font-semibold">02</div>
+          <h3 class="mt-5 font-display text-lg text-ink">High-yield savings</h3>
+          <p class="mt-2 text-sm text-slate-450 leading-relaxed">Interest calculated daily and paid monthly, visible right on your dashboard.</p>
+        </div>
+        <div class="bg-paper p-6 sm:p-8">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal font-display font-semibold">03</div>
+          <h3 class="mt-5 font-display text-lg text-ink">Fixed deposits</h3>
+          <p class="mt-2 text-sm text-slate-450 leading-relaxed">Lock in a rate for 3–24 months and track maturity from the same screen as your checking account.</p>
+        </div>
+        <div class="bg-paper p-6 sm:p-8">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal font-display font-semibold">04</div>
+          <h3 class="mt-5 font-display text-lg text-ink">Card control</h3>
+          <p class="mt-2 text-sm text-slate-450 leading-relaxed">Freeze or unfreeze your debit card in one tap if it's ever lost or misplaced.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CARDS -->
+<section id="cards" class="py-16 sm:py-24 lg:py-28 px-4 sm:px-6 lg:px-10 bg-mist/40">
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+    <div class="order-2 lg:order-1 grid sm:grid-cols-2 gap-4 sm:gap-5">
+      <div class="bg-white rounded-2xl p-6 sm:p-7 border border-mist">
+        <div class="w-10 h-10 rounded-full bg-teal/10 flex items-center justify-center text-teal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4z" stroke="currentColor" stroke-width="1.7"/></svg>
+        </div>
+        <h3 class="mt-5 font-display text-lg text-ink">One-tap freeze</h3>
+        <p class="mt-2 text-sm text-slate-450 leading-relaxed">Lock your card the second it goes missing — unlock it just as fast when you find it.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 sm:p-7 border border-mist">
+        <div class="w-10 h-10 rounded-full bg-teal/10 flex items-center justify-center text-teal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 10h18M7 15h2m4 0h4M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="currentColor" stroke-width="1.7"/></svg>
+        </div>
+        <h3 class="mt-5 font-display text-lg text-ink">Spending limits</h3>
+        <p class="mt-2 text-sm text-slate-450 leading-relaxed">Set a daily cap on your card, or turn off international and online transactions individually.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 sm:p-7 border border-mist">
+        <div class="w-10 h-10 rounded-full bg-teal/10 flex items-center justify-center text-teal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4.5 8-11.2V5l-8-3-8 3v5.8C4 17.5 12 22 12 22z" stroke="currentColor" stroke-width="1.7"/></svg>
+        </div>
+        <h3 class="mt-5 font-display text-lg text-ink">Virtual cards</h3>
+        <p class="mt-2 text-sm text-slate-450 leading-relaxed">Spin up a virtual card number for online shopping, so your physical card number stays private.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 sm:p-7 border border-mist">
+        <div class="w-10 h-10 rounded-full bg-teal/10 flex items-center justify-center text-teal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21c-4-4-7-7.2-7-11a7 7 0 0114 0c0 3.8-3 7-7 11z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" stroke-width="1.7"/></svg>
+        </div>
+        <h3 class="mt-5 font-display text-lg text-ink">Fee-free ATMs nearby</h3>
+        <p class="mt-2 text-sm text-slate-450 leading-relaxed">The dashboard maps the closest in-network ATM so withdrawals never cost you extra.</p>
+      </div>
+    </div>
+    <div class="order-1 lg:order-2">
+      <p class="text-teal text-sm font-medium">Debit &amp; virtual cards</p>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink leading-tight">
+        A card that listens the moment you tell it something's wrong.
+      </h2>
+      <p class="mt-5 text-slate-450 leading-relaxed max-w-md">
+        Every control lives on the same screen as your balance — no separate app, no phone call to a branch, no waiting for business hours.
+      </p>
+      <a href="{% url 'accounts:login' %}?mode=signup" class="mt-8 inline-block text-center w-full sm:w-auto bg-ink text-paper font-medium px-6 py-3.5 rounded-full hover:bg-ink/90 transition-colors">See card controls in the dashboard</a>
+    </div>
+  </div>
+</section>
+
+<!-- DEPOSITS / PLANS -->
+<section id="deposits" class="py-16 sm:py-24 lg:py-28 px-4 sm:px-6 lg:px-10 bg-paper">
+  <div class="max-w-7xl mx-auto">
+    <div class="max-w-xl">
+      <p class="text-teal text-sm font-medium">Fixed deposits</p>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink leading-tight">Pick a term, lock a rate, track it from your dashboard.</h2>
+      <p class="mt-4 text-slate-450 leading-relaxed">Interest is fixed for the whole term — the rate you open with is the rate you're paid at maturity.</p>
+    </div>
+
+    <div class="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="rounded-2xl border border-mist p-6 sm:p-7 bg-white">
+        <p class="text-sm text-slate-450">3 months</p>
+        <p class="mt-3 font-display text-3xl text-ink">6.0%</p>
+        <p class="mt-1 text-xs text-slate-450">p.a., paid at maturity</p>
+        <ul class="mt-6 space-y-2 text-sm text-slate-450">
+          <li>· $20,000 minimum</li>
+          <li>· Early exit after 30 days</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border border-mist p-6 sm:p-7 bg-white">
+        <p class="text-sm text-slate-450">6 months</p>
+        <p class="mt-3 font-display text-3xl text-ink">7.2%</p>
+        <p class="mt-1 text-xs text-slate-450">p.a., paid at maturity</p>
+        <ul class="mt-6 space-y-2 text-sm text-slate-450">
+          <li>· $40,000 minimum</li>
+          <li>· Early exit after 45 days</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border-2 border-gold p-6 sm:p-7 bg-white relative mt-3 sm:mt-0">
+        <span class="absolute -top-3 left-7 bg-gold text-ink text-xs font-medium px-3 py-1 rounded-full">Most chosen</span>
+        <p class="text-sm text-slate-450">18 months</p>
+        <p class="mt-3 font-display text-3xl text-ink">8.5%</p>
+        <p class="mt-1 text-xs text-slate-450">p.a., paid at maturity</p>
+        <ul class="mt-6 space-y-2 text-sm text-slate-450">
+          <li>· $60,000 minimum</li>
+          <li>· Early exit after 90 days</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border border-mist p-6 sm:p-7 bg-white">
+        <p class="text-sm text-slate-450">24 months</p>
+        <p class="mt-3 font-display text-3xl text-ink">9.1%</p>
+        <p class="mt-1 text-xs text-slate-450">p.a., paid at maturity</p>
+        <ul class="mt-6 space-y-2 text-sm text-slate-450">
+          <li>· $100,000 minimum</li>
+          <li>· Early exit after 120 days</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section id="security" class="py-16 sm:py-24 lg:py-28 px-4 sm:px-6 lg:px-10 bg-ink">
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-[0.7fr_1fr] gap-10 lg:gap-16">
+    <div>
+      <p class="text-gold text-sm font-medium">Security</p>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl font-semibold text-paper leading-tight">Protected the way a vault should be, not just the name.</h2>
+      <p class="mt-5 text-mist/70 leading-relaxed max-w-sm">Every session, transfer, and card action passes through the same checks your branch teller used to do by hand — just faster.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4 sm:gap-5">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6">
+        <h3 class="font-display text-paper">256-bit encryption</h3>
+        <p class="mt-2 text-sm text-mist/60 leading-relaxed">Every request between your device and our servers is encrypted end to end.</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6">
+        <h3 class="font-display text-paper">Two-factor login</h3>
+        <p class="mt-2 text-sm text-mist/60 leading-relaxed">A one-time code on top of your password for every new device.</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6">
+        <h3 class="font-display text-paper">Real-time fraud alerts</h3>
+        <p class="mt-2 text-sm text-mist/60 leading-relaxed">Unusual activity pauses the transaction and pings your phone before money moves.</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6">
+        <h3 class="font-display text-paper">Deposit protection</h3>
+        <p class="mt-2 text-sm text-mist/60 leading-relaxed">Balances are covered under member deposit insurance up to the statutory limit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST / STATS -->
+<section id="trust" class="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-ink">
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+    <div>
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold text-paper leading-tight">
+        Built by people who used to work in branch queues.
+      </h2>
+      <p class="mt-5 text-mist/70 leading-relaxed max-w-md">
+        <span class="notranslate" translate="no">White Trust Bank</span> started as a project inside a regional bank whose customers kept asking for one thing: to see their fixed deposit maturity date without calling in. Fourteen years later, that's still the question we design around.
+      </p>
+      <div class="mt-10 grid grid-cols-3 gap-4 sm:gap-8 max-w-md">
+        <div>
+          <p class="font-display text-2xl sm:text-3xl text-gold">2.1M</p>
+          <p class="text-xs text-mist/50 mt-1">accounts held</p>
+        </div>
+        <div>
+          <p class="font-display text-2xl sm:text-3xl text-gold">$48B</p>
+          <p class="text-xs text-mist/50 mt-1">in deposits</p>
+        </div>
+        <div>
+          <p class="font-display text-2xl sm:text-3xl text-gold">4.8/5</p>
+          <p class="text-xs text-mist/50 mt-1">customer rating</p>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-4">
+      <blockquote class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6">
+        <p class="text-paper/90 leading-relaxed">"I moved my fixed deposit here because the maturity date is actually on the dashboard instead of buried in a PDF."</p>
+        <cite class="mt-3 block text-sm text-mist/50 not-italic">— <span class="notranslate" translate="no">Charles., Pennsylvania</span></cite>
+      </blockquote>
+      <blockquote class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6">
+        <p class="text-paper/90 leading-relaxed">"Froze my card from a taxi at 11pm when I thought I'd lost my wallet. Took four seconds."</p>
+        <cite class="mt-3 block text-sm text-mist/50 not-italic">— <span class="notranslate" translate="no">JAMES., Pittsburgh</span></cite>
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- MOBILE APP -->
+<section id="app" class="py-16 sm:py-24 lg:py-28 px-4 sm:px-6 lg:px-10 bg-mist/40 overflow-hidden">
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+    <div>
+      <p class="text-teal text-sm font-medium">Mobile</p>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink leading-tight">The same dashboard, in your pocket.</h2>
+      <p class="mt-5 text-slate-450 leading-relaxed max-w-md">Check balances, freeze a card, or move money to your fixed deposit from wherever you are — everything here works the same on mobile.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="#" class="flex items-center gap-2.5 bg-ink text-paper px-5 py-3 rounded-xl hover:bg-ink/90 transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.6-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1.9-4 2.4-1.7 3-.4 7.4 1.2 9.9.8 1.2 1.8 2.5 3 2.5 1.2-.1 1.7-.8 3.1-.8s1.9.8 3.2.8c1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.4-.9-2.4-3.6v-.5zM15 4.8c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3z"/></svg>
+          <span class="text-left leading-tight"><span class="block text-[10px] text-mist/70">Download on the</span><span class="block text-sm font-medium">App Store</span></span>
+        </a>
+        <a href="#" class="flex items-center gap-2.5 bg-ink text-paper px-5 py-3 rounded-xl hover:bg-ink/90 transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4 3.5a1 1 0 011.5-.9l13 8.5a1 1 0 010 1.7l-13 8.5A1 1 0 014 20.5v-17z"/></svg>
+          <span class="text-left leading-tight"><span class="block text-[10px] text-mist/70">Get it on</span><span class="block text-sm font-medium">Google Play</span></span>
+        </a>
+      </div>
+    </div>
+    <div class="relative flex justify-center">
+      <div class="w-60 sm:w-64 rounded-[2.2rem] border-8 border-ink bg-ink shadow-2xl overflow-hidden">
+        <div class="bg-paper rounded-[1.6rem] overflow-hidden">
+          <div class="bg-gradient-to-br from-teal to-teal-dark px-5 pt-8 pb-10 text-paper">
+            <p class="text-xs text-paper/70">Total balance</p>
+            <p class="font-display text-2xl mt-1">$17,750.65</p>
+          </div>
+          <div class="p-4 space-y-3">
+            <div class="bg-white rounded-xl p-3.5 flex items-center justify-between border border-mist">
+              <span class="text-xs text-ink font-medium">Checking</span>
+              <span class="text-xs text-slate-450">$4,820.55</span>
+            </div>
+            <div class="bg-white rounded-xl p-3.5 flex items-center justify-between border border-mist">
+              <span class="text-xs text-ink font-medium">Savings</span>
+              <span class="text-xs text-slate-450">$12,930.10</span>
+            </div>
+            <div class="bg-teal/10 rounded-xl p-3.5 flex items-center justify-between">
+              <span class="text-xs text-teal font-medium">Freeze card</span>
+              <span class="w-8 h-4.5 rounded-full bg-teal-light inline-block relative"><span class="absolute right-0.5 top-0.5 w-3.5 h-3.5 rounded-full bg-white"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-16 sm:py-24 lg:py-28 px-4 sm:px-6 lg:px-10 bg-paper">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="font-display text-3xl sm:text-4xl font-semibold text-ink text-center">Common questions</h2>
+    <div class="mt-10 sm:mt-12 divide-y divide-mist border-t border-b border-mist">
+      <details class="group py-5">
+        <summary class="flex items-center justify-between gap-4 cursor-pointer list-none">
+          <span class="font-display text-ink">How fast can I open an account?</span>
+          <span class="text-teal group-open:rotate-45 transition-transform text-xl leading-none shrink-0">+</span>
+        </summary>
+        <p class="mt-3 text-sm text-slate-450 leading-relaxed">About six minutes online. You'll need a government ID and a means of funding the account for the initial deposit.</p>
+      </details>
+      <details class="group py-5">
+        <summary class="flex items-center justify-between gap-4 cursor-pointer list-none">
+          <span class="font-display text-ink">Can I break a fixed deposit early?</span>
+          <span class="text-teal group-open:rotate-45 transition-transform text-xl leading-none shrink-0">+</span>
+        </summary>
+        <p class="mt-3 text-sm text-slate-450 leading-relaxed">Yes, after the minimum hold period shown on your plan. Breaking early reduces the interest paid to the standard savings rate for the time held.</p>
+      </details>
+      <details class="group py-5">
+        <summary class="flex items-center justify-between gap-4 cursor-pointer list-none">
+          <span class="font-display text-ink">What happens when I freeze my card?</span>
+          <span class="text-teal group-open:rotate-45 transition-transform text-xl leading-none shrink-0">+</span>
+        </summary>
+        <p class="mt-3 text-sm text-slate-450 leading-relaxed">New purchases and withdrawals decline immediately. Recurring subscriptions already billed won't be interrupted. Unfreezing restores it instantly.</p>
+      </details>
+      <details class="group py-5">
+        <summary class="flex items-center justify-between gap-4 cursor-pointer list-none">
+          <span class="font-display text-ink">Are my deposits insured?</span>
+          <span class="text-teal group-open:rotate-45 transition-transform text-xl leading-none shrink-0">+</span>
+        </summary>
+        <p class="mt-3 text-sm text-slate-450 leading-relaxed">Yes, balances are covered under member deposit insurance up to the statutory limit per depositor.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="contact" class="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-paper">
+  <div class="max-w-4xl mx-auto text-center">
+    <h2 class="font-display text-3xl sm:text-4xl font-semibold text-ink">Ready to see your money in one place?</h2>
+    <p class="mt-4 text-slate-450">Opening an account takes about six minutes. No paperwork mailed in.</p>
+    <div class="mt-8 flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-4">
+      <a href="{% url 'accounts:login' %}?mode=signup" class="bg-teal text-paper font-medium px-7 py-3.5 rounded-full hover:bg-teal-dark transition-colors">Open an account</a>
+      <a href="{% url 'accounts:login' %}" class="text-ink border border-ink/15 px-7 py-3.5 rounded-full hover:bg-mist/60 transition-colors">Log in</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-ink border-t border-white/10 pt-14 sm:pt-16 px-4 sm:px-6 lg:px-10" style="padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));">
+  <div class="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-10">
+    <div class="col-span-2">
+      <div class="flex items-center gap-2.5">
+        <img src="{% static 'images/logo.png' %}" alt="" width="50" height="50" class="w-10 h-10 sm:w-[50px] sm:h-[50px] rounded-full object-cover">
+        <span class="notranslate font-display font-semibold text-paper" translate="no">White Trust Bank</span>
+      </div>
+      <p class="mt-4 text-sm text-mist/50 max-w-xs leading-relaxed">Checking, savings, and fixed deposits in one view. Member-insured deposits, est. 1999.</p>
+      <p class="mt-4 text-sm text-mist/50 leading-relaxed break-words">Email : <span class="notranslate" translate="no">admin.whitetrustbank.com@gmail.com</span></p>
+      <p class="mt-1 text-sm text-mist/50 leading-relaxed">Phone Number : <span class="notranslate" translate="no">+1 856 295-1591</span></p>
+      <form class="mt-6 flex w-full max-w-sm">
+        <input type="email" placeholder="Email for rate updates" class="min-w-0 flex-1 bg-white/5 border border-white/10 rounded-l-xl px-3.5 py-2.5 text-sm text-paper placeholder:text-mist/40 outline-none focus:border-teal-light" />
+        <button type="button" class="bg-gold text-ink text-sm font-medium px-4 rounded-r-xl hover:bg-gold/90 transition-colors">Join</button>
+      </form>
+    </div>
+    <div>
+      <p class="text-paper text-sm font-medium mb-4">Product</p>
+      <ul class="space-y-3 text-sm text-mist/50">
+        <li><a href="#services" class="hover:text-mist/80 transition-colors">Checking &amp; savings</a></li>
+        <li><a href="#cards" class="hover:text-mist/80 transition-colors">Cards</a></li>
+        <li><a href="#deposits" class="hover:text-mist/80 transition-colors">Fixed deposits</a></li>
+        <li><a href="#app" class="hover:text-mist/80 transition-colors">Mobile app</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="text-paper text-sm font-medium mb-4">Company</p>
+      <ul class="space-y-3 text-sm text-mist/50">
+        <li><a href="#trust" class="hover:text-mist/80 transition-colors">About</a></li>
+        <li><a href="#security" class="hover:text-mist/80 transition-colors">Security</a></li>
+        <li><a href="#faq" class="hover:text-mist/80 transition-colors">FAQ</a></li>
+        <li><a href="#contact" class="hover:text-mist/80 transition-colors">Contact</a></li>
+      </ul>
+    </div>
+    <div class="col-span-2 lg:col-span-1">
+      <p class="text-paper text-sm font-medium mb-4">Access</p>
+      <ul class="space-y-3 text-sm text-mist/50">
+        <li><a href="{% url 'accounts:login' %}" class="hover:text-mist/80 transition-colors">Customer login</a></li>
+        <li><a href="{% url 'accounts:login' %}" class="hover:text-mist/80 transition-colors">Bank staff login</a></li>
+        <li><a href="#" class="hover:text-mist/80 transition-colors">Privacy policy</a></li>
+        <li><a href="#" class="hover:text-mist/80 transition-colors">Terms of service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto mt-12 sm:mt-14 pt-8 border-t border-white/10 text-xs text-mist/40">
+    © 2026 <span class="notranslate" translate="no">White Trust Bank</span> Financial. Deposits protected under member insurance.
+  </div>
+</footer>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+
+  // --- Announcement bar + notification bell (static, marketing-page demo) --
+  (function () {
+    const bar = document.getElementById('announce-bar');
+    if (sessionStorage.getItem('vaultra_announce_dismissed') === '1' && bar) {
+      bar.classList.add('hidden');
+    }
+  })();
+  function dismissAnnounce() {
+    document.getElementById('announce-bar').classList.add('hidden');
+    sessionStorage.setItem('vaultra_announce_dismissed', '1');
+  }
+  function toggleNotifDropdown(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('notif-dropdown').classList.toggle('hidden');
+    toggleMobileNav(false);
+  }
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('notif-dropdown');
+    const btn = document.getElementById('notif-bell-btn');
+    if (dd && !dd.classList.contains('hidden') && !dd.contains(e.target) && !btn.contains(e.target)) {
+      dd.classList.add('hidden');
+    }
+  });
+
+  // --- Mobile menu ---------------------------------------------------------
+  function toggleMobileNav(force) {
+    const menu = document.getElementById('mobile-menu');
+    const btn = document.getElementById('menu-btn');
+    if (!menu || !btn) return;
+    const open = typeof force === 'boolean' ? force : menu.classList.contains('hidden');
+    menu.classList.toggle('hidden', !open);
+    btn.setAttribute('aria-expanded', String(open));
+    document.getElementById('menu-icon-open').classList.toggle('hidden', open);
+    document.getElementById('menu-icon-close').classList.toggle('hidden', !open);
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) document.getElementById('notif-dropdown').classList.add('hidden');
+  }
+  document.querySelectorAll('.mm-link').forEach((a) => a.addEventListener('click', () => toggleMobileNav(false)));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleMobileNav(false); });
+  window.matchMedia('(min-width: 1024px)').addEventListener('change', (m) => { if (m.matches) toggleMobileNav(false); });
+
+  // --- Aurora motion background (canvas) -------------------------------
+  (function () {
+    const canvas = document.getElementById('aurora-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, dpr;
+
+    function resize() {
+      // lower pixel density on phones keeps the animation smooth and saves battery
+      const cap = window.innerWidth < 640 ? 1.5 : 2;
+      dpr = Math.min(window.devicePixelRatio || 1, cap);
+      w = canvas.clientWidth; h = canvas.clientHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const blobs = [
+      { x: 0.2, y: 0.3, r: 0.55, c: 'rgba(15,92,78,0.55)', dx: 0.00006, dy: 0.00004, t: 0 },
+      { x: 0.75, y: 0.55, r: 0.5, c: 'rgba(23,131,111,0.45)', dx: -0.00005, dy: 0.00005, t: 2 },
+      { x: 0.5, y: 0.8, r: 0.45, c: 'rgba(201,162,39,0.18)', dx: 0.00004, dy: -0.00003, t: 4 },
+    ];
+
+    function frame(time) {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#0B1220';
+      ctx.fillRect(0, 0, w, h);
+      blobs.forEach((b) => {
+        const bx = (b.x + Math.sin(time * 0.00012 + b.t) * 0.06) * w;
+        const by = (b.y + Math.cos(time * 0.0001 + b.t) * 0.06) * h;
+        const r = b.r * Math.max(w, h);
+        const grad = ctx.createRadialGradient(bx, by, 0, bx, by, r);
+        grad.addColorStop(0, b.c);
+        grad.addColorStop(1, 'rgba(11,18,32,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(bx, by, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(frame);
+    }
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) requestAnimationFrame(frame);
+  })();
+
+</script>
+{% endblock %}

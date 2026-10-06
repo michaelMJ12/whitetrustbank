@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard — Vaultra{% endblock %}
+{% block chartjs %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>{% endblock %}
+{% block body_class %}bg-mist/40 text-ink min-h-screen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
+
+  <!-- Sidebar (desktop) -->
+  <aside class="hidden lg:flex flex-col bg-ink text-mist p-6 sticky top-0 h-screen">
+
+<a href="{% url 'landing' %}"
+   class="flex flex-nowrap items-center gap-2.5 mb-10 w-fit whitespace-nowrap">
+
+  <img
+    src="{% static 'images/logo.png' %}"
+    alt="White Trust Bank"
+    class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
+  >
+
+  <span class="notranslate font-display font-semibold text-base sm:text-lg text-paper whitespace-nowrap" translate="no">
+    White Trust Bank
+  </span>
+
+</a>
+
+
+    <nav class="space-y-1 text-sm">
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/10 text-paper font-medium">Overview</a>
+      <a href="#live-status" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">Live status</a>
+      <a href="#analytics" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">Analytics</a>
+      <a href="#goals" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">Savings goals</a>
+      <a href="#transactions" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">Transactions</a>
+      <a href="#deposit" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">Fixed deposit</a>
+      <a href="#card" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">Card control</a>
+      <a href="#statements" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors">Statements</a>
+    </nav>
+    <div class="mt-auto pt-6 border-t border-white/10 text-xs text-mist/50">
+      <p class="notranslate text-paper text-sm font-medium mb-0.5" translate="no">{{ user.get_full_name }}</p>
+      <p class="notranslate mb-4" translate="no">{{ user.account_number }}</p>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+        <button type="submit" class="text-mist/60 hover:text-paper transition-colors">Log out →</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="flex flex-col min-h-screen min-w-0">
+    <header class="flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-6 lg:px-10 h-16 border-b border-mist bg-paper/80 backdrop-blur sticky top-0 z-30" style="padding-top: env(safe-area-inset-top); height: calc(4rem + env(safe-area-inset-top));">
+      <div class="lg:hidden flex items-center gap-2 min-w-0">
+        <img src="{% static 'images/logo.png' %}" alt="White Trust Bank" width="50" height="50" class="w-9 h-9 rounded-full object-cover shrink-0">
+        <span class="notranslate hidden min-[420px]:inline font-display font-semibold text-ink truncate" translate="no">White Trust Bank</span>
+      </div>
+      <h1 class="hidden lg:block font-display text-lg text-ink truncate">Welcome back, <span class="notranslate" translate="no">{{ user.first_name }}</span></h1>
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <span class="hidden xl:inline text-xs text-slate-450">Signed in as <span class="notranslate font-medium text-ink" translate="no">{{ user.email }}</span></span>
+
+        <!-- Language dropdown -->
+        <label class="notranslate flex items-center gap-1.5 bg-white border border-mist rounded-full pl-2.5 pr-1.5 py-1.5 hover:bg-mist/60 transition-colors" translate="no">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="shrink-0"><circle cx="12" cy="12" r="9" stroke="#0F5C4E" stroke-width="1.7"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" stroke="#0F5C4E" stroke-width="1.5"/></svg>
+          <select class="lang-select text-xs text-ink bg-transparent outline-none cursor-pointer w-[4.5rem] sm:w-auto sm:max-w-[10rem]" aria-label="Language"></select>
+        </label>
+
+        <div class="sm:relative">
+          <button id="notif-bell-btn" onclick="toggleNotifDropdown(event)" aria-label="Notifications" class="relative w-9 h-9 rounded-full bg-white border border-mist flex items-center justify-center hover:bg-mist/60 transition-colors">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1112 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z" stroke="#0B1220" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 19a2 2 0 004 0" stroke="#0B1220" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <span id="notif-badge" class="{% if not unread_notifications %}hidden{% endif %} absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-red-500 text-white text-[10px] font-medium leading-[17px] text-center">{{ unread_notifications }}</span>
+          </button>
+          <div id="notif-dropdown" class="hidden absolute left-3 right-3 top-full mt-2 sm:left-auto sm:right-0 sm:w-80 max-h-[70dvh] sm:max-h-[26rem] overflow-y-auto bg-white border border-mist rounded-2xl shadow-xl z-40">
+            <div class="px-4 py-3 border-b border-mist flex items-center justify-between sticky top-0 bg-white">
+              <p class="font-display text-sm text-ink">Notifications</p>
+              <button onclick="markAllNotifsRead()" class="text-xs text-teal hover:underline py-1">Mark all read</button>
+            </div>
+            <div id="notif-list" class="divide-y divide-mist"></div>
+          </div>
+        </div>
+
+        <form method="post" action="{% url 'accounts:logout' %}" class="lg:hidden">{% csrf_token %}
+          <button type="submit" class="text-sm text-teal py-2 whitespace-nowrap">Log out</button>
+        </form>
+      </div>
+    </header>
+
+    <!-- Section bar (mobile / tablet) -->
+    <nav id="mobile-sections" class="lg:hidden sticky z-20 flex gap-2 overflow-x-auto no-scrollbar px-4 sm:px-6 py-2 bg-paper/90 backdrop-blur border-b border-mist text-xs whitespace-nowrap" style="top: calc(4rem + env(safe-area-inset-top));">
+      <a href="#live-status" class="px-3.5 py-2 rounded-full bg-white border border-mist text-ink">Live status</a>
+      <a href="#analytics" class="px-3.5 py-2 rounded-full bg-white border border-mist text-ink">Analytics</a>
+      <a href="#goals" class="px-3.5 py-2 rounded-full bg-white border border-mist text-ink">Savings goals</a>
+      <a href="#transactions" class="px-3.5 py-2 rounded-full bg-white border border-mist text-ink">Transactions</a>
+      <a href="#deposit" class="px-3.5 py-2 rounded-full bg-white border border-mist text-ink">Fixed deposit</a>
+      <a href="#card" class="px-3.5 py-2 rounded-full bg-white border border-mist text-ink">Card control</a>
+      <a href="#statements" class="px-3.5 py-2 rounded-full bg-white border border-mist text-ink">Statements</a>
+    </nav>
+
+    <main class="flex-1 p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-10 min-w-0">
+
+      <!-- Balance cards -->
+      <section class="grid md:grid-cols-3 gap-4 sm:gap-5">
+        <div class="bg-gradient-to-br from-teal to-teal-dark text-paper rounded-2xl p-5 sm:p-6">
+          <p class="text-xs text-paper/70">Checking · withdrawable</p>
+          <p id="bal-checking" class="notranslate font-display text-3xl sm:text-4xl mt-3 break-words" translate="no"> ${{ balance.checking|floatformat:2 }}</p>
+          <button onclick="openModal('withdraw')" class="mt-5 text-xs bg-white/15 hover:bg-white/25 transition-colors px-3.5 py-2 rounded-full">Withdraw funds</button>
+        </div>
+        <div class="bg-white rounded-2xl p-5 sm:p-6 border border-mist">
+          <p class="text-xs text-slate-450">Savings</p>
+          <p id="bal-savings" class="notranslate font-display text-3xl sm:text-4xl mt-3 text-ink break-words" translate="no"> ${{ balance.savings|floatformat:2 }}</p>
+          <button onclick="openModal('transfer')" class="mt-5 text-xs bg-mist/60 hover:bg-mist transition-colors px-3.5 py-2 rounded-full text-ink">Move to checking</button>
+        </div>
+        <div id="deposit" class="bg-white rounded-2xl p-5 sm:p-6 border border-mist">
+          <p class="text-xs text-slate-450">Fixed deposit · {{ balance.fixed_rate }}% p.a.</p>
+          <p id="bal-fixed" class="notranslate font-display text-3xl sm:text-4xl mt-3 text-ink break-words" translate="no"> ${{ balance.fixed_amount|floatformat:2 }}</p>
+          <p class="mt-5 text-xs text-slate-450">Matures <span class="text-ink font-medium">{{ balance.fixed_maturity|date:"j M Y" }}</span></p>
+        </div>
+      </section>
+
+      <!-- Quick actions -->
+      <section class="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+        <button onclick="openModal('transfer')" class="bg-white border border-mist rounded-2xl p-4 sm:p-5 text-left hover:border-teal/40 transition-colors">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 11l5-5 5 5M12 6v13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <p class="mt-3 text-sm font-medium text-ink">Send money</p>
+        </button>
+        <button onclick="openModal('withdraw')" class="bg-white border border-mist rounded-2xl p-4 sm:p-5 text-left hover:border-teal/40 transition-colors">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17 13l-5 5-5-5M12 18V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <p class="mt-3 text-sm font-medium text-ink">Withdraw</p>
+        </button>
+        <a href="#deposit" class="bg-white border border-mist rounded-2xl p-4 sm:p-5 text-left hover:border-teal/40 transition-colors">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <p class="mt-3 text-sm font-medium text-ink">New deposit</p>
+        </a>
+        <a href="#statements" class="bg-white border border-mist rounded-2xl p-4 sm:p-5 text-left hover:border-teal/40 transition-colors">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 2h9l3 3v17H6V2z" stroke="currentColor" stroke-width="1.7"/><path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <p class="mt-3 text-sm font-medium text-ink">Statements</p>
+        </a>
+        <button onclick="openExternalModal()" class="bg-white border border-mist rounded-2xl p-4 sm:p-5 text-left hover:border-teal/40 transition-colors col-span-2 md:col-span-1">
+          <div class="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center text-teal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.7"/><path d="M13 15l3-3 3 3M16 12v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <p class="mt-3 text-sm font-medium text-ink">Send to another bank</p>
+        </button>
+      </section>
+
+      <!-- Live transaction monitor -->
+      <section id="live-status" class="bg-white rounded-2xl border border-mist p-5 sm:p-6 lg:p-8">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="min-w-0">
+            <h2 class="font-display text-lg text-ink">Live transaction monitor</h2>
+            <p class="text-sm text-slate-450 mt-0.5">Real-time status of your most recent transfer — set by bank control.</p>
+          </div>
+          <div class="flex items-center gap-2 bg-paper border border-mist rounded-full pl-3 pr-4 py-1.5 max-w-full">
+            <span id="live-dot" class="w-2.5 h-2.5 rounded-full bg-teal animate-pulse shrink-0"></span>
+            <span id="live-label" class="text-sm font-medium text-ink truncate">Loading…</span>
+          </div>
+        </div>
+        <div class="mt-5 h-28 sm:h-32 rounded-xl bg-paper border border-mist overflow-hidden relative">
+          <canvas id="live-graph" class="w-full h-full block"></canvas>
+        </div>
+        <p id="live-desc" class="mt-3 text-xs text-slate-450 break-words">—</p>
+        <div class="mt-6 grid grid-cols-4 gap-1 sm:gap-2">
+          <div class="text-center"><span id="step-dot-1" class="w-3.5 h-3.5 rounded-full bg-mist inline-block transition-colors"></span><p class="mt-2 text-[10px] sm:text-xs text-slate-450 leading-tight">Submitted</p></div>
+          <div class="text-center"><span id="step-dot-2" class="w-3.5 h-3.5 rounded-full bg-mist inline-block transition-colors"></span><p class="mt-2 text-[10px] sm:text-xs text-slate-450 leading-tight">Network check</p></div>
+          <div class="text-center"><span id="step-dot-3" class="w-3.5 h-3.5 rounded-full bg-mist inline-block transition-colors"></span><p class="mt-2 text-[10px] sm:text-xs text-slate-450 leading-tight">Verification</p></div>
+          <div class="text-center"><span id="step-dot-4" class="w-3.5 h-3.5 rounded-full bg-mist inline-block transition-colors"></span><p class="mt-2 text-[10px] sm:text-xs text-slate-450 leading-tight">Completed</p></div>
+        </div>
+        <div class="mt-6 pt-5 border-t border-mist flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span class="text-[11px] text-slate-450">Beat colour by type:</span>
+          <span id="live-legend" class="flex flex-wrap gap-x-4 gap-y-1.5"></span>
+        </div>
+      </section>
+
+      <!-- Analytics -->
+      <section id="analytics" class="grid lg:grid-cols-[1.4fr_1fr] gap-4 sm:gap-5">
+        <div class="bg-white rounded-2xl border border-mist p-5 sm:p-6 lg:p-8 min-w-0">
+          <div class="flex items-start sm:items-center justify-between gap-3 flex-wrap">
+            <div><h2 class="font-display text-lg text-ink">Balance trend</h2><p class="text-sm text-slate-450 mt-0.5">Checking vs. savings, last 6 months</p></div>
+            <div class="flex gap-4 text-xs">
+              <span class="flex items-center gap-1.5 text-slate-450"><span class="w-2.5 h-2.5 rounded-full bg-teal inline-block"></span>Checking</span>
+              <span class="flex items-center gap-1.5 text-slate-450"><span class="w-2.5 h-2.5 rounded-full bg-gold inline-block"></span>Savings</span>
+            </div>
+          </div>
+          <div class="mt-4 h-56 sm:h-64"><canvas id="balanceLineChart"></canvas></div>
+          <div class="mt-5 border-t border-mist pt-2" id="balanceTable-mount"></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-mist p-5 sm:p-6 lg:p-8 min-w-0">
+          <h2 class="font-display text-lg text-ink">Spending by category</h2>
+          <p class="text-sm text-slate-450 mt-0.5">Last 30 days, relative share</p>
+          <div class="mt-4 h-64"><canvas id="spendingRadarChart"></canvas></div>
+          <div class="mt-5 border-t border-mist pt-2" id="spendingTable-mount"></div>
+        </div>
+      </section>
+
+      <!-- Savings goals -->
+      <section id="goals" class="bg-white rounded-2xl border border-mist p-5 sm:p-6 lg:p-8">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="font-display text-lg text-ink">Savings goals</h2>
+          <span class="text-xs text-slate-450">Funded from your savings balance</span>
+        </div>
+        <div class="mt-6 grid md:grid-cols-3 gap-5">
+          {% for goal in savings_goals %}
+          <div>
+            <div class="flex justify-between gap-3 text-sm mb-2"><span class="text-ink font-medium">{{ goal.name }}</span><span class="text-slate-450">{{ goal.progress_pct }}%</span></div>
+            <div class="h-2 rounded-full bg-mist overflow-hidden"><div class="h-full bg-teal rounded-full" style="width:{{ goal.progress_pct }}%"></div></div>
+            <p class="mt-2 text-xs text-slate-450">${{ goal.current_amount|floatformat:0 }} of ${{ goal.target_amount|floatformat:0 }}</p>
+          </div>
+          {% empty %}
+          <p class="text-sm text-slate-450 md:col-span-3">No savings goals yet.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- Card control -->
+      <section id="card" class="bg-white rounded-2xl border border-mist p-5 sm:p-6 lg:p-8 grid md:grid-cols-[auto_1fr] gap-6 md:gap-8 items-center">
+        <div class="bg-gradient-to-br from-teal to-teal-dark rounded-2xl p-5 sm:p-6 w-64 max-w-full aspect-[1.586] shadow-lg mx-auto">
+          <div class="flex justify-between items-start"><span class="notranslate font-display text-paper text-sm" translate="no">White Trust Bank</span><span class="text-gold text-xs">Debit</span></div>
+          <div class="notranslate mt-8 text-paper/90 tracking-[0.15em] text-base font-medium" translate="no">•••• •••• •••• {{ user.card_last4 }}</div>
+          <div class="mt-5 flex justify-between items-end gap-2 text-paper/70 text-[11px]"><span class="notranslate truncate" translate="no">{{ user.get_full_name|upper }}</span><span class="notranslate shrink-0" translate="no">09 / 29</span></div>
+        </div>
+        <div>
+          <h2 class="font-display text-lg text-ink">Card control</h2>
+          <p class="mt-1.5 text-sm text-slate-450 max-w-sm">Freeze your card instantly if it's lost — purchases and withdrawals will decline until you unfreeze it.</p>
+          <div class="mt-5 flex items-center gap-3 flex-wrap">
+            <button id="freeze-toggle" onclick="toggleFreeze()" class="text-sm font-medium px-5 py-2.5 rounded-full transition-colors">—</button>
+            <span id="freeze-status" class="text-xs text-slate-450">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Transactions -->
+      <section id="transactions" class="bg-white rounded-2xl border border-mist overflow-hidden">
+        <div class="px-5 sm:px-6 lg:px-8 py-5 border-b border-mist">
+          <h2 class="font-display text-lg text-ink">Recent transactions</h2>
+          <p class="text-sm text-slate-450 mt-0.5">Search, sort, or filter by category and status.</p>
+        </div>
+        <div id="tx-mount"></div>
+      </section>
+
+      <!-- Statements -->
+      <section id="statements" class="bg-white rounded-2xl border border-mist p-5 sm:p-6 lg:p-8" style="margin-bottom: env(safe-area-inset-bottom);">
+        <h2 class="font-display text-lg text-ink">Statements</h2>
+        <p class="text-sm text-slate-450 mt-0.5">Monthly summaries for your records or a loan application.</p>
+        <div class="mt-5 divide-y divide-mist">
+          <div class="flex items-center justify-between py-3.5"><span class="text-sm text-ink">August 2026</span><button class="text-xs font-medium text-teal hover:underline py-1">Download PDF</button></div>
+          <div class="flex items-center justify-between py-3.5"><span class="text-sm text-ink">July 2026</span><button class="text-xs font-medium text-teal hover:underline py-1">Download PDF</button></div>
+          <div class="flex items-center justify-between py-3.5"><span class="text-sm text-ink">June 2026</span><button class="text-xs font-medium text-teal hover:underline py-1">Download PDF</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: withdraw / transfer (bottom sheet on phones) -->
+<div id="modal-backdrop" class="hidden fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+  <div class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-sm max-h-[92dvh] overflow-y-auto pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+    <h3 id="modal-title" class="font-display text-lg text-ink">—</h3>
+    <p id="modal-sub" class="mt-1 text-sm text-slate-450">—</p>
+    <form id="modal-form" class="mt-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-ink mb-1.5">Amount</label>
+        <input id="modal-amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00" class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal" />
+      </div>
+      <p id="modal-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+      <div class="flex gap-3">
+        <button type="button" onclick="closeModal()" class="flex-1 border border-mist text-ink py-3 rounded-xl hover:bg-mist/50 transition-colors">Cancel</button>
+        <button type="submit" class="flex-1 bg-teal text-paper py-3 rounded-xl hover:bg-teal-dark transition-colors">Confirm</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: send to another bank (bottom sheet on phones) -->
+<div id="external-modal-backdrop" class="hidden fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+  <div class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-sm max-h-[92dvh] overflow-y-auto pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+    <h3 class="font-display text-lg text-ink">Send to another bank</h3>
+    <p class="mt-1 text-sm text-slate-450">Interbank transfers are queued, then verified by bank control — watch the live monitor above.</p>
+    <form id="external-form" class="mt-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-ink mb-1.5">Recipient bank</label>
+        <select id="ext-bank" required class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal">
+          <option value="">Select a bank…</option>
+          <option>Wells Fargo</option><option>Bank of America</option><option>U.S.Bank</option><option>Citibank</option><option>Truist</option><option>M&T Bank</option><option>BMO Bank</option><option>JPMorgan Chase</option><option>Other / international bank</option>
+        </select>
+      </div>
+      <div><label class="block text-sm font-medium text-ink mb-1.5">Recipient account number</label><input id="ext-account" required inputmode="numeric" autocomplete="off" placeholder="0123456789" class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal" /></div>
+      <div><label class="block text-sm font-medium text-ink mb-1.5">Recipient name</label><input id="ext-name" required autocomplete="off" placeholder="Full name on the account" class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal" /></div>
+      <div><label class="block text-sm font-medium text-ink mb-1.5">Amount</label><input id="ext-amount" type="number" inputmode="decimal" min="1" step="0.01" required placeholder="0.00" class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal" /></div>
+      <div><label class="block text-sm font-medium text-ink mb-1.5">Narration (optional)</label><input id="ext-narration" autocomplete="off" placeholder="What's this for?" class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal" /></div>
+      <p id="external-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+      <div class="flex gap-3">
+        <button type="button" onclick="closeExternalModal()" class="flex-1 border border-mist text-ink py-3 rounded-xl hover:bg-mist/50 transition-colors">Cancel</button>
+        <button type="submit" class="flex-1 bg-teal text-paper py-3 rounded-xl hover:bg-teal-dark transition-colors">Send transfer</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const URLS = {
+    balance: "{% url 'banking:api_balance' %}",
+    transactions: "{% url 'banking:api_transactions' %}",
+    liveStatus: "{% url 'banking:api_live_status' %}",
+    notifications: "{% url 'banking:api_notifications' %}",
+    notificationsRead: "{% url 'banking:api_notifications_mark_read' %}",
+    withdraw: "{% url 'banking:api_withdraw' %}",
+    transfer: "{% url 'banking:api_transfer' %}",
+    externalTransfer: "{% url 'banking:api_external_transfer' %}",
+    toggleFreeze: "{% url 'banking:api_toggle_freeze' %}",
+  };
+  let cardFrozen = {{ user.card_frozen|yesno:"true,false" }};
+
+  /* Translation-safe text writer: remembers the last RAW (English) value we wrote,
+     so a polling loop never overwrites text the translator has already translated. */
+  function setText(el, txt) {
+    if (el.dataset.raw !== txt) { el.dataset.raw = txt; el.textContent = txt; }
+  }
+
+  function paintFreeze() {
+    const btn = document.getElementById('freeze-toggle');
+    const status = document.getElementById('freeze-status');
+    if (cardFrozen) {
+      btn.textContent = 'Unfreeze card';
+      btn.className = 'text-sm font-medium px-5 py-2.5 rounded-full bg-teal text-paper hover:bg-teal-dark transition-colors';
+      status.textContent = 'Card is frozen — no transactions will go through.';
+    } else {
+      btn.textContent = 'Freeze card';
+      btn.className = 'text-sm font-medium px-5 py-2.5 rounded-full bg-red-50 text-red-700 hover:bg-red-100 transition-colors';
+      status.textContent = 'Active and protected.';
+    }
+  }
+  async function toggleFreeze() {
+    const res = await Vaultra.api.postForm(URLS.toggleFreeze, {});
+    if (res.ok) { cardFrozen = res.cardFrozen; paintFreeze(); paintNotifications(); }
+  }
+  paintFreeze();
+
+  function applyBalance(b) {
+    document.getElementById('bal-checking').textContent = Vaultra.formatCurrency(b.checking).replace('₦', '');
+    document.getElementById('bal-savings').textContent = Vaultra.formatCurrency(b.savings).replace('₦', '');
+
+  }
+
+  // --- Smart table: transactions ------------------------------------------
+  let txTable = null;
+  function categoryBadge(cat) {
+    const meta = (Vaultra.categories && Vaultra.categories[cat]) || { label: cat, color: '#5B6472' };
+    return `<span class="text-xs px-2 py-1 rounded-full whitespace-nowrap" style="background:${meta.color}1A;color:${meta.color}">${meta.label}</span>`;
+  }
+  function statusBadge(status) {
+    const cls = status === 'pending' ? 'bg-gold/15 text-ink' : status === 'declined' ? 'bg-red-50 text-red-600' : 'bg-teal/10 text-teal';
+    const text = status === 'completed' ? 'Successful' : status === 'declined' ? 'Failed' : 'Pending';
+    return `<span class="text-xs px-2.5 py-1 rounded-full whitespace-nowrap ${cls}">${text}</span>`;
+  }
+  function mountTransactions() {
+    const STATUS_OPTIONS = [{value:'completed',label:'Successful'},{value:'pending',label:'Pending'},{value:'declined',label:'Failed'}];
+    const CAT_OPTIONS = Object.keys(Vaultra.categories).map((k) => ({ value: k, label: Vaultra.categories[k].label }));
+    txTable = Vaultra.ui.mountRemoteTable({
+      container: document.getElementById('tx-mount'),
+      endpoint: URLS.transactions,
+      pageSize: 6,
+      searchPlaceholder: 'Search description…',
+      columns: [
+        { key: 'date', label: 'Date' }, { key: 'desc', label: 'Description', sortable: false },
+        { key: 'category', label: 'Category', sortable: false }, { key: 'status', label: 'Status' },
+        { key: 'amount', label: 'Amount', align: 'right' },
+      ],
+      filters: [{ key: 'status', label: 'Status', options: STATUS_OPTIONS }, { key: 'category', label: 'Category', options: CAT_OPTIONS }],
+      defaultSort: { key: 'date', dir: 'desc' },
+      emptyText: 'No transactions match that search.',
+      renderRow: (t) => `
+        <tr>
+          <td class="px-4 sm:px-6 lg:px-8 py-4 text-slate-450 whitespace-nowrap">${t.date}</td>
+          <td class="px-4 py-4 text-ink">${t.desc}</td>
+          <td class="px-4 py-4">${categoryBadge(t.category)}</td>
+          <td class="px-4 py-4">${statusBadge(t.status)}</td>
+          <td class="notranslate px-4 sm:px-6 lg:px-8 py-4 text-right font-medium ${t.type === 'credit' ? 'text-teal' : 'text-ink'} whitespace-nowrap" translate="no">${t.type === 'credit' ? '+' : '−'} ${Vaultra.formatCurrency(t.amount)}</td>
+        </tr>`,
+    });
+  }
+
+  // --- Live transaction monitor -------------------------------------------
+  let currentLive = { status: 'completed', stage: 4, tone: 'teal', category: 'internal' };
+  function initLiveMonitor() {
+    const graphCtrl = Vaultra.createLiveGraph(document.getElementById('live-graph'), () => currentLive);
+    graphCtrl.start();
+
+    const legend = document.getElementById('live-legend');
+    legend.innerHTML = Object.keys(Vaultra.categories).map((k) => `
+      <span class="flex items-center gap-1.5 text-[11px] text-slate-450">
+        <span class="w-2 h-2 rounded-full inline-block" style="background:${Vaultra.categories[k].color}"></span>${Vaultra.categories[k].label}
+      </span>`).join('');
+
+    function paint(state) {
+      const dot = document.getElementById('live-dot');
+      const label = document.getElementById('live-label');
+      const desc = document.getElementById('live-desc');
+      const isIssue = state.status === 'issue' || state.status === 'flagged';
+      const cat = Vaultra.categories[state.category] || { label: state.category, color: '#0F5C4E' };
+      const dotColor = isIssue ? '#DC2626' : cat.color;
+      dot.className = 'w-2.5 h-2.5 rounded-full animate-pulse shrink-0';
+      dot.style.background = dotColor;
+      // Only write when the raw text changed -> the translator is not re-triggered every second
+      setText(label, state.label + (state.category ? ' · ' + cat.label : ''));
+      setText(desc, state.desc ? `${state.desc}${state.amount ? ' · ' + Vaultra.formatCurrency(state.amount) : ''}` : 'No active transfer — showing account activity.');
+      for (let i = 1; i <= 4; i++) {
+        const d = document.getElementById('step-dot-' + i);
+        d.className = 'w-3.5 h-3.5 rounded-full inline-block transition-colors';
+        d.style.background = '';
+        if (i < state.stage) d.classList.add('bg-teal');
+        else if (i === state.stage) { d.style.background = dotColor; d.classList.add('ring-4', isIssue ? 'ring-red-100' : 'ring-teal/20'); }
+        else d.classList.add('bg-mist');
+      }
+    }
+
+    async function poll() {
+      try {
+        currentLive = await Vaultra.api.getJSON(URLS.liveStatus);
+        paint(currentLive);
+      } catch (e) { /* keep last known state on a transient network error */ }
+    }
+    poll();
+    setInterval(poll, 1000);
+  }
+
+  // --- Notifications ---------------------------------------------------
+  let lastNotifSig = '';
+  function toneDot(tone) { return { teal: 'bg-teal', gold: 'bg-gold', red: 'bg-red-500' }[tone] || 'bg-teal'; }
+  async function paintNotifications() {
+    const data = await Vaultra.api.getJSON(URLS.notifications).catch(() => ({ results: [], unread: 0 }));
+    const sig = JSON.stringify(data);
+    if (sig === lastNotifSig) return;          // nothing changed -> don't re-render (keeps translation stable)
+    lastNotifSig = sig;
+    const badge = document.getElementById('notif-badge');
+    badge.textContent = data.unread > 9 ? '9+' : String(data.unread);
+    badge.classList.toggle('hidden', data.unread === 0);
+    const list = document.getElementById('notif-list');
+    list.innerHTML = data.results.length ? data.results.map((n) => `
+      <div class="px-4 py-3 flex gap-3 ${n.read ? '' : 'bg-teal/[0.03]'}">
+        <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 ${toneDot(n.tone)}"></span>
+        <div class="min-w-0"><p class="text-sm text-ink font-medium">${n.title}</p><p class="text-xs text-slate-450 mt-0.5 break-words">${n.body}</p><p class="text-[11px] text-slate-450/70 mt-1">${n.date}</p></div>
+      </div>`).join('') : `<div class="px-4 py-8 text-center text-sm text-slate-450">You're all caught up.</div>`;
+  }
+  function toggleNotifDropdown(e) { if (e) e.stopPropagation(); document.getElementById('notif-dropdown').classList.toggle('hidden'); }
+  async function markAllNotifsRead() { await Vaultra.api.postForm(URLS.notificationsRead, {}); paintNotifications(); }
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('notif-dropdown'); const btn = document.getElementById('notif-bell-btn');
+    if (!dd.classList.contains('hidden') && !dd.contains(e.target) && !btn.contains(e.target)) dd.classList.add('hidden');
+  });
+
+  // --- Modals: withdraw / transfer / external transfer --------------------
+  let modalMode = null;
+  function lockScroll(on) { document.body.style.overflow = on ? 'hidden' : ''; }
+  function openModal(mode) {
+    modalMode = mode;
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+    lockScroll(true);
+    document.getElementById('modal-error').classList.add('hidden');
+    document.getElementById('modal-amount').value = '';
+    document.getElementById('modal-title').textContent = mode === 'withdraw' ? 'Withdraw funds' : 'Move savings to checking';
+    document.getElementById('modal-sub').textContent = mode === 'withdraw' ? 'Requests over ₦200 are queued for review before they clear.' : 'Transfers between your own accounts are instant.';
+  }
+  function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); lockScroll(false); }
+
+  document.getElementById('modal-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const amount = document.getElementById('modal-amount').value;
+    const errorEl = document.getElementById('modal-error');
+    const res = await Vaultra.api.postForm(modalMode === 'withdraw' ? URLS.withdraw : URLS.transfer, { amount });
+    if (!res.ok) { errorEl.textContent = res.error; errorEl.classList.remove('hidden'); return; }
+    applyBalance(res.balance);
+    closeModal();
+    txTable && txTable.refresh();
+    paintNotifications();
+  });
+
+  function openExternalModal() {
+    document.getElementById('external-error').classList.add('hidden');
+    document.getElementById('external-form').reset();
+    document.getElementById('external-modal-backdrop').classList.remove('hidden');
+    lockScroll(true);
+  }
+  function closeExternalModal() { document.getElementById('external-modal-backdrop').classList.add('hidden'); lockScroll(false); }
+
+  // tap the dimmed area outside a sheet to close it
+  ['modal-backdrop', 'external-modal-backdrop'].forEach((id) => {
+    document.getElementById(id).addEventListener('click', (e) => {
+      if (e.target.id === id) { id === 'modal-backdrop' ? closeModal() : closeExternalModal(); }
+    });
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeExternalModal(); } });
+
+  document.getElementById('external-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const errorEl = document.getElementById('external-error');
+    const res = await Vaultra.api.postForm(URLS.externalTransfer, {
+      bank_name: document.getElementById('ext-bank').value,
+      recipient_account_number: document.getElementById('ext-account').value,
+      recipient_name: document.getElementById('ext-name').value,
+      amount: document.getElementById('ext-amount').value,
+      narration: document.getElementById('ext-narration').value,
+    });
+    if (!res.ok) { errorEl.textContent = res.error; errorEl.classList.remove('hidden'); return; }
+    applyBalance(res.balance);
+    closeExternalModal();
+    txTable && txTable.refresh();
+    paintNotifications();
+  });
+
+  // --- Analytics: illustrative charts + matching smart-style tables -------
+  // Same numbers as the static prototype. Swapping these for real monthly
+  // aggregates of Transaction/Balance is a clean follow-up — see README.
+  function renderCharts() {
+    const lineCtx = document.getElementById('balanceLineChart').getContext('2d');
+    const checkingGradient = lineCtx.createLinearGradient(0, 0, 0, 240);
+    checkingGradient.addColorStop(0, 'rgba(15,92,78,0.35)'); checkingGradient.addColorStop(1, 'rgba(15,92,78,0)');
+    const savingsGradient = lineCtx.createLinearGradient(0, 0, 0, 240);
+    savingsGradient.addColorStop(0, 'rgba(201,162,39,0.30)'); savingsGradient.addColorStop(1, 'rgba(201,162,39,0)');
+    const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+    const checkingSeries = [3200, 3650, 3100, 4400, 4025, {{ balance.checking }}];
+    const savingsSeries = [9800, 10200, 10500, 11400, 12100, {{ balance.savings }}];
+    new Chart(lineCtx, {
+      type: 'line', data: { labels: months, datasets: [
+        { label: 'Checking', data: checkingSeries, borderColor: '#0F5C4E', backgroundColor: checkingGradient, borderWidth: 2.5, tension: 0.45, fill: true, pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: '#0F5C4E' },
+        { label: 'Savings', data: savingsSeries, borderColor: '#C9A227', backgroundColor: savingsGradient, borderWidth: 2.5, tension: 0.45, fill: true, pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: '#C9A227' },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false }, ticks: { color: '#5B6472', font: { size: 11 } } }, y: { grid: { color: '#E9E4D8' }, ticks: { color: '#5B6472', font: { size: 11 }, maxTicksLimit: 6, callback: (v) => '₦' + v / 1000 + 'k' } } } },
+    });
+
+    const radarCtx = document.getElementById('spendingRadarChart').getContext('2d');
+    const categories = ['Bills', 'Groceries', 'Transport', 'Shopping', 'Transfers', 'Dining'];
+    const thisMonth = [70, 55, 40, 65, 30, 45], lastMonth = [60, 50, 55, 40, 45, 35];
+    new Chart(radarCtx, {
+      type: 'radar', data: { labels: categories, datasets: [
+        { label: 'This month', data: thisMonth, borderColor: '#0F5C4E', backgroundColor: 'rgba(15,92,78,0.18)', borderWidth: 2, pointBackgroundColor: '#0F5C4E', pointRadius: 3 },
+        { label: 'Last month', data: lastMonth, borderColor: '#C9A227', backgroundColor: 'rgba(201,162,39,0.12)', borderWidth: 2, borderDash: [4, 4], pointBackgroundColor: '#C9A227', pointRadius: 3 },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#5B6472', boxWidth: 10, font: { size: 11 } } } },
+        scales: { r: { angleLines: { color: '#E9E4D8' }, grid: { color: '#E9E4D8' }, pointLabels: { color: '#0B1220', font: { size: 11 } }, ticks: { display: false } } } },
+    });
+
+    function localTable(container, cols, rows) {
+      container.innerHTML = `<table class="w-full text-sm"><thead><tr class="text-left text-xs text-slate-450 border-b border-mist">${cols.map((c) => `<th class="px-2 py-2 font-medium ${c.right ? 'text-right' : ''}">${c.label}</th>`).join('')}</tr></thead><tbody class="divide-y divide-mist">${rows.map((r) => `<tr>${cols.map((c) => `<td class="px-2 py-2 ${c.right ? 'text-right text-slate-450' : 'text-ink'}">${c.fmt ? c.fmt(r[c.key]) : r[c.key]}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+    localTable(document.getElementById('balanceTable-mount'),
+      [{ key: 'month', label: 'Month' }, { key: 'checking', label: 'Checking', right: true, fmt: Vaultra.formatCurrency }, { key: 'savings', label: 'Savings', right: true, fmt: Vaultra.formatCurrency }],
+      months.map((m, i) => ({ month: m, checking: checkingSeries[i], savings: savingsSeries[i] })));
+    localTable(document.getElementById('spendingTable-mount'),
+      [{ key: 'category', label: 'Category' }, { key: 'thisMonth', label: 'This month', right: true, fmt: (v) => v + '%' }, { key: 'lastMonth', label: 'Last month', right: true, fmt: (v) => v + '%' }],
+      categories.map((c, i) => ({ category: c, thisMonth: thisMonth[i], lastMonth: lastMonth[i] })));
+  }
+
+  Vaultra.loadMeta().then(() => {
+    mountTransactions();
+    initLiveMonitor();
+    renderCharts();
+    paintNotifications();
+    setInterval(paintNotifications, 5000);
+  });
+</script>
+{% endblock %}

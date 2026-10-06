@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Log in — Vaultra{% endblock %}
+{% block content %}
+
+<div class="min-h-screen grid lg:grid-cols-2">
+
+  <!-- Brand panel -->
+  <div class="hidden lg:flex relative flex-col justify-between bg-ink p-12 overflow-hidden">
+    <div class="absolute inset-0 opacity-40"
+         style="background: radial-gradient(circle at 20% 20%, #0F5C4E, transparent 55%), radial-gradient(circle at 80% 70%, #17836F, transparent 50%);">
+    </div>
+
+    <div class="relative">
+      <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
+        <img src="{% static 'images/logo.png' %}" alt="" width="50px" height="50px" style="border-radius: 100%;">
+          <rect width="28" height="28" rx="7" fill="#0F5C4E"/>
+          <path d="M8 19V11.5L14 8L20 11.5V19"
+                stroke="#C9A227"
+                stroke-width="1.6"
+                stroke-linejoin="round"/>
+          <path d="M11 19V14.5H17V19"
+                stroke="#F7F5EF"
+                stroke-width="1.6"
+                stroke-linejoin="round"/>
+        </svg>
+
+        <span class="font-display font-semibold text-xl text-paper">
+          White Trust Bank
+        </span>
+      </a>
+    </div>
+
+    <div class="relative max-w-sm">
+      <p class="font-display text-3xl text-paper leading-snug">
+        "Froze my card from a taxi at 11pm. Took four seconds."
+      </p>
+
+      <p class="mt-4 text-mist/60 text-sm">
+        — Michael B., customer since 2019
+      </p>
+    </div>
+
+    <div class="relative flex gap-8 text-mist/40 text-xs">
+      <span>Member-insured deposits</span>
+      <span>256-bit encryption</span>
+    </div>
+  </div>
+
+
+  <!-- Form panel -->
+  <div class="flex items-center justify-center p-6 sm:p-12">
+    <div class="w-full max-w-sm">
+
+      <!-- Mobile logo -->
+      <a href="{% url 'landing' %}" class="lg:hidden flex items-center gap-2 mb-10">
+        <img src="{% static 'images/logo.png' %}" alt="" width="50px" height="50px" style="border-radius: 100%;">
+          <rect width="28" height="28" rx="7" fill="#0F5C4E"/>
+          <path d="M8 19V11.5L14 8L20 11.5V19"
+                stroke="#C9A227"
+                stroke-width="1.6"
+                stroke-linejoin="round"/>
+          <path d="M11 19V14.5H17V19"
+                stroke="#F7F5EF"
+                stroke-width="1.6"
+                stroke-linejoin="round"/>
+        </svg>
+
+        <span class="font-display font-semibold text-lg text-ink">
+          White Trust Bank
+        </span>
+      </a>
+
+
+      <!-- ========================================================= -->
+      <!-- LOGIN VIEW -->
+      <!-- ========================================================= -->
+
+      <div id="login-view"
+           class="{% if active == 'signup' %}hidden{% endif %}">
+
+        <h1 class="font-display text-2xl font-semibold text-ink">
+          Log in to your account
+        </h1>
+
+        <p class="mt-2 text-sm text-slate-450">
+          Enter the email and password on file.
+        </p>
+
+
+        <form method="post"
+              action="{% url 'accounts:login' %}"
+              class="mt-8 space-y-4">
+
+          {% csrf_token %}
+
+          <!-- Email -->
+          <div>
+            <label
+              class="block text-sm font-medium text-ink mb-1.5"
+              for="{{ login_form.email.id_for_label }}">
+              Email
+            </label>
+
+            {{ login_form.email }}
+
+            {% if login_form.email.errors %}
+              <p class="mt-1 text-xs text-red-600">
+                {{ login_form.email.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+
+          <!-- Password -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+
+              <label
+                class="block text-sm font-medium text-ink"
+                for="{{ login_form.password.id_for_label }}">
+                Password
+              </label>
+
+              <a href="#"
+                 class="text-xs text-teal hover:underline">
+                Forgot password?
+              </a>
+
+            </div>
+
+            {{ login_form.password }}
+
+            {% if login_form.password.errors %}
+              <p class="mt-1 text-xs text-red-600">
+                {{ login_form.password.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+
+          <!-- Login errors -->
+          {% if login_form.non_field_errors %}
+            <p class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              {{ login_form.non_field_errors.0 }}
+            </p>
+          {% endif %}
+
+
+          <!-- Login button -->
+          <button
+            type="submit"
+            class="w-full bg-teal text-paper font-medium py-3 rounded-xl hover:bg-teal-dark transition-colors">
+            Log in
+          </button>
+
+        </form>
+
+
+        <!-- Demo credentials -->
+        <!-- <div class="mt-6 p-3.5 rounded-xl bg-mist/50 text-xs text-slate-450 leading-relaxed">
+          <p class="font-medium text-ink mb-1">
+            Demo credentials
+          </p>
+
+          Create your own account below, or ask whoever seeded this database for a demo login.
+        </div> -->
+
+
+        <!-- Switch to signup -->
+        <p class="mt-8 text-center text-sm text-slate-450">
+          New to White Trust Bank?
+
+          <button
+            type="button"
+            onclick="showSignup()"
+            class="text-teal font-medium hover:underline">
+            Open an account
+          </button>
+        </p>
+
+      </div>
+
+
+
+      <!-- ========================================================= -->
+      <!-- SIGN UP VIEW -->
+      <!-- ========================================================= -->
+
+      <div id="signup-view"
+           class="{% if active != 'signup' %}hidden{% endif %}">
+
+        <h1 class="font-display text-2xl font-semibold text-ink">
+          Open an account
+        </h1>
+
+        <p class="mt-2 text-sm text-slate-450">
+          Takes about a minute — you'll land straight in your dashboard.
+        </p>
+
+
+        <form method="post"
+              action="{% url 'accounts:signup' %}"
+              class="mt-8 space-y-4">
+
+          {% csrf_token %}
+
+
+          <!-- ===================================================== -->
+          <!-- FULL NAME -->
+          <!-- ===================================================== -->
+
+          <div>
+            <label
+              class="block text-sm font-medium text-ink mb-1.5"
+              for="{{ signup_form.full_name.id_for_label }}">
+              Full name
+            </label>
+
+            {{ signup_form.full_name }}
+
+            {% if signup_form.full_name.errors %}
+              <p class="mt-1 text-xs text-red-600">
+                {{ signup_form.full_name.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+
+          <!-- ===================================================== -->
+          <!-- EMAIL -->
+          <!-- ===================================================== -->
+
+          <div>
+            <label
+              class="block text-sm font-medium text-ink mb-1.5"
+              for="{{ signup_form.email.id_for_label }}">
+              Email
+            </label>
+
+            {{ signup_form.email }}
+
+            {% if signup_form.email.errors %}
+              <p class="mt-1 text-xs text-red-600">
+                {{ signup_form.email.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+
+          <!-- ===================================================== -->
+          <!-- PHONE -->
+          <!-- ===================================================== -->
+
+          <div>
+            <label
+              class="block text-sm font-medium text-ink mb-1.5"
+              for="{{ signup_form.phone.id_for_label }}">
+              Phone number
+            </label>
+
+            {{ signup_form.phone }}
+
+            {% if signup_form.phone.errors %}
+              <p class="mt-1 text-xs text-red-600">
+                {{ signup_form.phone.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+
+          <!-- ===================================================== -->
+          <!-- PASSWORD -->
+          <!-- ===================================================== -->
+
+          <div>
+            <label
+              class="block text-sm font-medium text-ink mb-1.5"
+              for="{{ signup_form.password.id_for_label }}">
+              Create a password
+            </label>
+
+            {{ signup_form.password }}
+
+            {% if signup_form.password.errors %}
+              <p class="mt-1 text-xs text-red-600">
+                {{ signup_form.password.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+
+          <!-- ===================================================== -->
+          <!-- NON-FIELD ERRORS -->
+          <!-- ===================================================== -->
+
+          {% if signup_form.non_field_errors %}
+            <div class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              {{ signup_form.non_field_errors.0 }}
+            </div>
+          {% endif %}
+
+
+          <!-- ===================================================== -->
+          <!-- ACCOUNT INFORMATION -->
+          <!-- ===================================================== -->
+
+          <div class="p-3.5 rounded-xl bg-mist/50 text-xs text-slate-450 leading-relaxed">
+
+            <p class="font-medium text-ink mb-1">
+              Your banking details
+            </p>
+
+            <p>
+              Your White Trust Bank account number and card details will be
+              generated automatically when your account is created.
+            </p>
+
+          </div>
+
+
+          <!-- ===================================================== -->
+          <!-- CREATE ACCOUNT -->
+          <!-- ===================================================== -->
+
+          <button
+            type="submit"
+            class="w-full bg-gold text-ink font-medium py-3 rounded-xl hover:bg-gold/90 transition-colors">
+            Create my account
+          </button>
+
+        </form>
+
+
+        <!-- Switch to login -->
+        <p class="mt-8 text-center text-sm text-slate-450">
+          Already have an account?
+
+          <button
+            type="button"
+            onclick="showLogin()"
+            class="text-teal font-medium hover:underline">
+            Log in
+          </button>
+        </p>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+
+  function showSignup() {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('signup-view').classList.remove('hidden');
+
+    history.replaceState(
+      null,
+      '',
+      '?mode=signup'
+    );
+  }
+
+
+  function showLogin() {
+    document.getElementById('signup-view').classList.add('hidden');
+    document.getElementById('login-view').classList.remove('hidden');
+
+    history.replaceState(
+      null,
+      '',
+      '{% url "accounts:login" %}'
+    );
+  }
+
+
+  if (
+    new URLSearchParams(location.search).get('mode') === 'signup'
+  ) {
+    showSignup();
+  }
+
+</script>
+
+{% endblock %}
