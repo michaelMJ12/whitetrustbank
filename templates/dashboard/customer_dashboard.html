@@ -13,11 +13,11 @@
 <a href="{% url 'landing' %}"
    class="flex flex-nowrap items-center gap-2.5 mb-10 w-fit whitespace-nowrap">
 
-  <!-- <img
+  <img
     src="{% static 'images/logo.png' %}"
     alt="White Trust Bank"
     class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
-  > -->
+  >
 
   <span class="notranslate font-display font-semibold text-base sm:text-lg text-paper whitespace-nowrap" translate="no">
     White Trust Bank
@@ -49,6 +49,7 @@
     <header class="flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-6 lg:px-10 h-16 border-b border-mist bg-paper/80 backdrop-blur sticky top-0 z-30" style="padding-top: env(safe-area-inset-top); height: calc(4rem + env(safe-area-inset-top));">
       <div class="lg:hidden flex items-center gap-2 min-w-0">
         <img src="{% static 'images/logo.png' %}" alt="White Trust Bank" width="50" height="50" class="w-9 h-9 rounded-full object-cover shrink-0">
+        <h1 class="font-display text-base sm:text-lg text-ink truncate">{{ user.first_name }}</h1>
         <span class="notranslate hidden min-[420px]:inline font-display font-semibold text-ink truncate" translate="no">White Trust Bank</span>
       </div>
       <h1 class="hidden lg:block font-display text-lg text-ink truncate">Welcome back, <span class="notranslate" translate="no">{{ user.first_name }}</span></h1>
