@@ -180,6 +180,11 @@ ASGI_APPLICATION = "vaultra_project.asgi.application"
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
+if not DATABASE_URL and not DEBUG:
+    raise RuntimeError(
+        "DATABASE_URL is required in production."
+    )
+
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(
@@ -195,7 +200,6 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-
 
 # ============================================================
 # PASSWORD VALIDATION
