@@ -2,6 +2,9 @@ from django.core.management.base import BaseCommand
 from accounts.models import User
 
 
+AUTH_USER_MODEL = "accounts.User"
+
+
 class Command(BaseCommand):
     help = "Create the initial admin user if it does not exist"
 
