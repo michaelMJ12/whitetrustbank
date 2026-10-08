@@ -89,9 +89,7 @@ CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
         "CSRF_TRUSTED_ORIGINS",
-        "https://whitetrustbank.com",
-        "https://www.whitetrustbank.com",
-        "https://whitetrustbank.onrender.com",
+        "https://whitetrustltd.com,https://www.whitetrustltd.com,https://whitetrustbank.onrender.com"
     ).split(",")
     if origin.strip()
 ]
