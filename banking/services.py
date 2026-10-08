@@ -39,7 +39,7 @@ def withdraw(user, amount: Decimal):
     balance.checking -= amount
     balance.save(update_fields=["checking"])
     tx = Transaction.objects.create(
-        user=user, description="ATM withdrawal", type=Transaction.Type.DEBIT,
+        user=user, description="withdrawal", type=Transaction.Type.DEBIT,
         amount=amount, status=Transaction.Status.COMPLETED, category="withdrawal",
     )
     return tx
