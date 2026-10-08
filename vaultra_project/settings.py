@@ -66,7 +66,9 @@ ALLOWED_HOSTS = [
     for host in os.environ.get(
         "ALLOWED_HOSTS",
         "127.0.0.1,localhost",
-        "whitetrustbank.onrender.com",
+        "whitetrustltd.com",
+        "www.whitetrustltd.com",
+        "whitetrustbank.onrender.com"
     ).split(",")
     if host.strip()
 ]
