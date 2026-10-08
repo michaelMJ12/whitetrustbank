@@ -61,17 +61,21 @@ DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
 #
 # You can override this through the ALLOWED_HOSTS
 # environment variable.
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get(
         "ALLOWED_HOSTS",
-        "127.0.0.1,localhost",
-        "whitetrustltd.com",
-        "www.whitetrustltd.com",
-        "whitetrustbank.onrender.com"
+        "127.0.0.1,localhost,whitetrustltd.com,www.whitetrustltd.com"
     ).split(",")
     if host.strip()
 ]
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
 
 
 # CSRF TRUSTED ORIGINS
