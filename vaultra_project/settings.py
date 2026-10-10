@@ -265,22 +265,22 @@ LOGOUT_REDIRECT_URL = "landing"
 
 # Gmail SMTP configuration.
 
-EAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
+# EMAIL_HOST = "smtp.gmail.com"
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = False
 
-EMAIL_HOST_USER = os.environ.get("GMAIL_EMAIL", "")
-EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
+# EMAIL_HOST_USER = os.environ.get("GMAIL_EMAIL", "")
+# EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
 
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL",
-    f"White Trust Bank <{EMAIL_HOST_USER}>",
-)
+# DEFAULT_FROM_EMAIL = os.environ.get(
+#     "DEFAULT_FROM_EMAIL",
+#     f"White Trust Bank <{EMAIL_HOST_USER}>",
+# )
 
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
+# SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 
 
