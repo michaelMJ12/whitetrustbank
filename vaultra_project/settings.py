@@ -270,53 +270,23 @@ LOGOUT_REDIRECT_URL = "landing"
 # If SMTP does not work on Render, use Gmail API or an HTTP
 # email provider instead.
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"
-
 EMAIL_PORT = 587
-
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 
+EMAIL_HOST_USER = os.environ.get("GMAIL_EMAIL", "")
+EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
 
-# Gmail address used to send application emails.
-#
-# Render environment variable:
-#
-# GMAIL_EMAIL=yourbank@gmail.com
-#
-EMAIL_HOST_USER = os.environ.get(
-    "GMAIL_EMAIL",
-    "",
-)
-
-
-# Gmail App Password.
-#
-# IMPORTANT:
-# This must be a Google App Password,
-# NOT your normal Gmail password.
-#
-# Render environment variable:
-#
-# GMAIL_APP_PASSWORD=abcdefghijklmnop
-#
-EMAIL_HOST_PASSWORD = os.environ.get(
-    "GMAIL_APP_PASSWORD",
-    "",
-)
-
-
-# Address shown in the From field.
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    EMAIL_HOST_USER,
+    f"White Trust Bank <{EMAIL_HOST_USER}>",
 )
 
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-# Prevent failed email connections from hanging
-# the web request indefinitely.
-EMAIL_TIMEOUT = 20
 
 
 # ============================================================
