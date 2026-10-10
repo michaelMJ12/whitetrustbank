@@ -47,7 +47,7 @@ SECRET_KEY = os.environ.get(
 #
 # Local default: True
 # Render: set DEBUG=False
-DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
+DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
 
 
 # ALLOWED HOSTS
