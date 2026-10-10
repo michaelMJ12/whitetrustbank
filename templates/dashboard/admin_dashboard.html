@@ -308,6 +308,30 @@
     </form>
   </div>
 </div>
+
+<!-- Delete account modal (bottom sheet on phones) -->
+<div id="delete-modal-backdrop"
+  class="hidden fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+  <div class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-sm max-h-[92dvh] overflow-y-auto pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
+    <h3 class="font-display text-lg text-ink">Delete account</h3>
+    <p id="delete-modal-sub" class="mt-1 text-sm text-slate-450">—</p>
+    <form id="delete-modal-form" class="mt-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-ink mb-1.5">Type the account number to confirm</label>
+        <input id="delete-modal-confirm" type="text" required autocomplete="off"
+          placeholder="Account number"
+          class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-400/40 focus:border-red-400" />
+      </div>
+      <p id="delete-modal-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+      <div class="flex gap-3">
+        <button type="button" onclick="closeDeleteModal()"
+          class="flex-1 border border-mist text-ink py-3 rounded-xl hover:bg-mist/50 transition-colors">Cancel</button>
+        <button type="submit"
+          class="flex-1 bg-red-600 text-paper py-3 rounded-xl hover:bg-red-700 transition-colors">Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -326,7 +350,10 @@
     notificationsRead: "{% url 'banking:api_admin_notifications_mark_read' %}",
   };
 
+  const csrfToken = '{{ csrf_token }}';
+
   let activeUserId = null;
+  let deleteTarget = null;
   const fmt = Vaultra.formatCurrency;
 
   /* Translation-safe text writer: remembers the last RAW (English) value we wrote,
@@ -354,6 +381,64 @@
     document.getElementById('stat-pending').textContent = s.pending;
   }
 
+  /* ------------------------------------------------------------------
+     Pagination: client-side Prev/Next controls for ANY rendered table
+     inside a container. A MutationObserver re-applies pagination after
+     the smart table re-renders (refresh / search / sort / filter).
+     ------------------------------------------------------------------ */
+  function applyPagination(container, perPage) {
+    const table = container.querySelector('table');
+    if (!table) return;
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    if (!container._vPage) container._vPage = 1;
+    const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+    let page = Math.min(container._vPage, totalPages);
+    container._vPage = page;
+
+    rows.forEach((r, i) => { r.style.display = (i >= (page - 1) * perPage && i < page * perPage) ? '' : 'none'; });
+
+    let bar = container.querySelector('.v-pagination-bar');
+    if (totalPages <= 1) { if (bar) bar.remove(); return; }
+
+    const btnCls = (disabled) => `px-3 py-1.5 rounded-full border border-mist transition-colors ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-mist/60 bg-white'}`;
+    const barHtml = `
+      <button type="button" data-dir="-1" ${page <= 1 ? 'disabled' : ''} class="${btnCls(page <= 1)}">← Prev</button>
+      <span>Page ${page} of ${totalPages}</span>
+      <button type="button" data-dir="1" ${page >= totalPages ? 'disabled' : ''} class="${btnCls(page >= totalPages)}">Next →</button>`;
+
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'v-pagination-bar flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 border-t border-mist text-xs text-slate-450';
+      container.appendChild(bar);
+    }
+    bar.innerHTML = barHtml;
+    bar.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      container._vPage = page + Number(b.dataset.dir);
+      applyPagination(container, perPage);
+    }));
+  }
+
+  function attachPagination(container, perPage) {
+    if (!container) return;
+    let bar = null;
+    const observer = new MutationObserver((muts) => {
+      // ignore mutations caused by the pagination bar itself (avoid loops)
+      const selfOnly = muts.every((m) => {
+        if (bar && bar.contains(m.target)) return true;
+        const nodes = [...(m.addedNodes || []), ...(m.removedNodes || [])];
+        return nodes.length > 0 && nodes.every((n) => n === bar);
+      });
+      if (selfOnly) return;
+      bar = container.querySelector('.v-pagination-bar');
+      applyPagination(container, perPage);
+    });
+    observer.observe(container, { childList: true, subtree: true });
+    applyPagination(container, perPage);
+  }
+
   const smartTables = {};
 
   function catOptions() { return Object.keys(Vaultra.categories).map((k) => ({ value: k, label: Vaultra.categories[k].label })); }
@@ -369,6 +454,7 @@
       defaultSort: { key: 'date', dir: 'desc' }, emptyText: 'No transactions match that search.',
       renderRow: (t) => `<tr><td class="px-4 sm:px-6 lg:px-8 py-3.5 text-ink font-medium whitespace-nowrap"><span class="notranslate" translate="no">${t.customer}</span></td><td class="px-4 py-3.5 text-slate-450">${t.desc}</td><td class="px-4 py-3.5">${categoryBadge(t.category)}</td><td class="px-4 py-3.5 text-slate-450 whitespace-nowrap">${t.date}</td><td class="px-4 py-3.5">${statusBadge(t.status)}</td><td class="notranslate px-4 sm:px-6 lg:px-8 py-3.5 text-right font-medium ${t.type === 'credit' ? 'text-teal' : 'text-ink'} whitespace-nowrap" translate="no">${t.type === 'credit' ? '+' : '−'} ${fmt(t.amount)}</td></tr>`,
     });
+    attachPagination(el, pageSize || 6);
   }
 
   function mountAccounts(mountId) {
@@ -386,8 +472,10 @@
         <td class="px-4 sm:px-6 lg:px-8 py-4 text-right space-x-2 whitespace-nowrap">
           <button onclick="openModal(${u.id})" class="text-xs font-medium px-3 py-1.5 rounded-full bg-mist/60 hover:bg-mist transition-colors text-ink">Adjust</button>
           <button onclick="toggleFreeze(${u.id})" class="text-xs font-medium px-3 py-1.5 rounded-full ${u.cardStatus === 'Frozen' ? 'bg-teal text-paper hover:bg-teal-dark' : 'bg-red-50 text-red-700 hover:bg-red-100'} transition-colors">${u.cardStatus === 'Frozen' ? 'Unfreeze' : 'Freeze'}</button>
+          <button onclick="openDeleteModal(${u.id}, '${u.name}', '${u.accountNumber}')" class="text-xs font-medium px-3 py-1.5 rounded-full bg-red-600 text-paper hover:bg-red-700 transition-colors">Delete</button>
         </td></tr>`,
     });
+    attachPagination(el, 8);
   }
 
   function mountPending(mountId) {
@@ -405,6 +493,7 @@
           <button onclick="setTx('${t.id}','declined')" class="text-xs font-medium px-3 py-1.5 rounded-full bg-red-50 text-red-700 hover:bg-red-100 transition-colors">Decline</button>
         </td></tr>`,
     });
+    attachPagination(el, 8);
   }
 
   // --- Analytics: illustrative charts + matching tables (see README) ------
@@ -412,22 +501,23 @@
     const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
     const depositsData = months.map((m, i) => ({ month: m, liquid: Math.round(totals.liquid * [0.78, 0.83, 0.8, 0.9, 0.95, 1][i]), fixed: Math.round(totals.fixed * [0.7, 0.74, 0.8, 0.86, 0.93, 1][i]) }));
     const depositsMount = document.getElementById('depositsTable-mount' + suffix);
-    if (depositsMount) localTable(depositsMount, [{ k: 'month', l: 'Month' }, { k: 'liquid', l: 'Liquid', r: 1, f: fmt }, { k: 'fixed', l: 'Fixed', r: 1, f: fmt }], depositsData);
+    if (depositsMount) localTable(depositsMount, [{ k: 'month', l: 'Month' }, { k: 'liquid', l: 'Liquid', r: 1, f: fmt }, { k: 'fixed', l: 'Fixed', r: 1, f: fmt }], depositsData, 4);
 
     const portfolioData = [
       { metric: 'Checking', value: totals.checking }, { metric: 'Savings', value: totals.savings }, { metric: 'Fixed deposits', value: totals.fixed },
       { metric: 'Active cards', value: totals.active }, { metric: 'Frozen cards', value: totals.frozen }, { metric: 'Pending items', value: totals.pending },
     ];
     const portfolioMount = document.getElementById('portfolioTable-mount' + suffix);
-    if (portfolioMount) localTable(portfolioMount, [{ k: 'metric', l: 'Metric' }, { k: 'value', l: 'Value', r: 1, f: (v) => v > 1000 ? fmt(v) : v }], portfolioData);
+    if (portfolioMount) localTable(portfolioMount, [{ k: 'metric', l: 'Metric' }, { k: 'value', l: 'Value', r: 1, f: (v) => v > 1000 ? fmt(v) : v }], portfolioData, 4);
 
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const completed = [12, 15, 9, 18, 14, 7, 5], pend = [2, 1, 3, 1, 2, 1, 1], declined = [1, 0, 1, 0, 1, 0, 0];
     const volumeMount = document.getElementById('volumeTable-mount' + suffix);
-    if (volumeMount) localTable(volumeMount, [{ k: 'day', l: 'Day' }, { k: 'completed', l: 'Successful', r: 1 }, { k: 'pending', l: 'Pending', r: 1 }, { k: 'declined', l: 'Failed', r: 1 }], days.map((d, i) => ({ day: d, completed: completed[i], pending: pend[i], declined: declined[i] })));
+    if (volumeMount) localTable(volumeMount, [{ k: 'day', l: 'Day' }, { k: 'completed', l: 'Successful', r: 1 }, { k: 'pending', l: 'Pending', r: 1 }, { k: 'declined', l: 'Failed', r: 1 }], days.map((d, i) => ({ day: d, completed: completed[i], pending: pend[i], declined: declined[i] })), 4);
   }
-  function localTable(container, cols, rows) {
+  function localTable(container, cols, rows, perPage) {
     container.innerHTML = `<table class="w-full text-sm"><thead><tr class="text-left text-xs text-slate-450 border-b border-mist">${cols.map((c) => `<th class="px-2 py-2 font-medium ${c.r ? 'text-right' : ''}">${c.l}</th>`).join('')}</tr></thead><tbody class="divide-y divide-mist">${rows.map((row) => `<tr>${cols.map((c) => `<td class="px-2 py-2 ${c.r ? 'text-right text-slate-450' : 'text-ink'}">${c.f ? c.f(row[c.k]) : row[c.k]}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    if (perPage) attachPagination(container, perPage);
   }
 
   async function renderCharts(suffix) {
@@ -595,9 +685,49 @@
   }
   function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); document.body.style.overflow = ''; }
 
+  // --- Delete account ---------------------------------------------------
+  function openDeleteModal(userId, name, accountNumber) {
+    deleteTarget = { userId: userId, accountNumber: accountNumber };
+    document.getElementById('delete-modal-sub').textContent = 'This will deactivate ' + name + ' (' + accountNumber + '). This action can be reviewed later.';
+    document.getElementById('delete-modal-confirm').value = '';
+    document.getElementById('delete-modal-error').classList.add('hidden');
+    document.getElementById('delete-modal-backdrop').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDeleteModal() {
+    deleteTarget = null;
+    document.getElementById('delete-modal-backdrop').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('delete-modal-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const err = document.getElementById('delete-modal-error');
+    if (!deleteTarget) return;
+    const typed = document.getElementById('delete-modal-confirm').value.trim();
+    if (typed !== deleteTarget.accountNumber) {
+      err.textContent = 'Account number does not match. Deletion cancelled.';
+      err.classList.remove('hidden');
+      return;
+    }
+    const res = await fetch(`/api/admin/accounts/${deleteTarget.userId}/delete/`, {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken },
+      body: new URLSearchParams({ confirm: typed, permanent: "false" }),
+    }).catch(() => null);
+    if (!res || !res.ok) {
+      err.textContent = 'Delete failed. Please try again.';
+      err.classList.remove('hidden');
+      return;
+    }
+    closeDeleteModal();
+    renderStats(); refreshAllSmartTables(); paintNotifications();
+  });
+
   // tap the dimmed area outside the sheet (or press Esc) to close it
   document.getElementById('modal-backdrop').addEventListener('click', (e) => { if (e.target.id === 'modal-backdrop') closeModal(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  document.getElementById('delete-modal-backdrop').addEventListener('click', (e) => { if (e.target.id === 'delete-modal-backdrop') closeDeleteModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeDeleteModal(); } });
 
   document.getElementById('modal-form').addEventListener('submit', async function (e) {
     e.preventDefault();

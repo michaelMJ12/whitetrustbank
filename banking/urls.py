@@ -35,4 +35,5 @@ urlpatterns = [
     path("api/admin/live-status/<int:user_id>/set/", views.api_admin_live_status_set, name="api_admin_live_status_set"),
     path("api/admin/notifications/", views.api_admin_notifications, name="api_admin_notifications"),
     path("api/admin/notifications/mark-all-read/", views.api_admin_notifications_mark_read, name="api_admin_notifications_mark_read"),
+    path("api/admin/accounts/<int:user_id>/delete/",views.api_admin_delete_account,name="api_admin_delete_account",),
 ]

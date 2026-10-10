@@ -183,3 +183,16 @@ def set_live_status(user, status: str, *, category=None, amount=None, descriptio
             tone="teal" if status == "completed" else "red",
         )
     return live
+
+
+def admin_delete_account(user, *, permanent=False):
+    b = user.balance
+    if b.checking or b.savings or b.fixed_amount:
+        raise ServiceError("Balance must be zero before closing an account.")
+
+    with db_transaction.atomic():
+        if permanent:
+            user.delete()
+        else:
+            user.is_active = False
+            user.save(update_fields=["is_active"])

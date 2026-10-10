@@ -436,9 +436,7 @@ ACCOUNT_SORT_FIELDS = {
 @require_GET
 def api_admin_accounts(request):
     qs = (
-        User.objects
-        .filter(role="customer")
-        .select_related("balance")
+        User.objects.filter(role="customer", is_active=True).select_related("balance")
     )
 
     search = request.GET.get("search", "").strip()
@@ -707,5 +705,26 @@ def api_admin_notifications_mark_read(request):
         audience=Notification.Audience.ADMIN,
         read=False,
     ).update(read=True)
+
+    return JsonResponse({"ok": True})
+
+
+@admin_required
+@json_post_required
+def api_admin_delete_account(request, user_id):
+    user = get_object_or_404(User, pk=user_id, role="customer")
+
+    if request.POST.get("confirm") != user.account_number:
+        return JsonResponse(
+            {"ok": False, "error": "Type the account number to confirm."},
+            status=400,
+        )
+
+    permanent = request.POST.get("permanent") == "true"
+
+    try:
+        services.admin_delete_account(user, permanent=permanent)
+    except ServiceError as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=400)
 
     return JsonResponse({"ok": True})
