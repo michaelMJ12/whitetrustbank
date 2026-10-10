@@ -14,8 +14,19 @@ def _redirect_for_role(user):
     )
 
 
-def login_view(request):
+import logging
 
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect, render
+
+from .forms import LoginForm, SignupForm
+from .services import EmailService
+
+logger = logging.getLogger(__name__)
+
+
+def login_view(request):
     login_form = LoginForm()
     signup_form = SignupForm()
 
@@ -26,11 +37,9 @@ def login_view(request):
     )
 
     if request.method == "POST":
-
         login_form = LoginForm(request.POST)
 
         if login_form.is_valid():
-
             user = authenticate(
                 request,
                 username=login_form.cleaned_data["email"],
@@ -38,49 +47,39 @@ def login_view(request):
             )
 
             if user is not None:
-                # Login user
-                print('email send..')
+                # Establish the authenticated session first.
                 login(request, user)
 
-                # ----------------------------------------
-                # SEND LOGIN EMAIL
-                # ----------------------------------------
+                logger.info(
+                    "User authentication successful; role-based redirect follows."
+                )
+
+                # Email delivery must not prevent a successful login.
                 try:
-                    result = EmailService.send_login_email(user)
-                    print("login_up successful...")
-                    if result:
+                    email_sent = EmailService.send_login_email(user)
+
+                    if email_sent:
                         messages.success(
                             request,
                             "Login successful. A security notification "
                             "has been sent to your email.",
                         )
-                        print(
-                            f"[EMAIL SUCCESS] Login email sent successfully "
-                            f"to {user.email}"
-                        )
-                        
                     else:
                         messages.warning(
                             request,
-                            "Login successful, but we could not send "
-                            "the login notification email.",
-                        )
-                        print(
-                            f"[EMAIL FAILED] Login email was not sent "
-                            f"to {user.email}"
+                            "Login successful, but the security notification "
+                            "could not be sent. You can continue using your account.",
                         )
 
-                except Exception as e:
+                except Exception:
+                    logger.exception(
+                        "Unexpected error while sending login notification."
+                    )
 
                     messages.warning(
                         request,
-                        "Login successful, but we could not send "
-                        "the login notification email.",
-                    )
-
-                    print(
-                        f"[EMAIL ERROR] Login email failed for "
-                        f"{user.email}: {type(e).__name__}: {e}"
+                        "Login successful, but the security notification "
+                        "could not be sent.",
                     )
 
                 return _redirect_for_role(user)
