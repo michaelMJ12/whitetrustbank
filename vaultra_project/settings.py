@@ -264,11 +264,6 @@ LOGOUT_REDIRECT_URL = "landing"
 # ============================================================
 
 # Gmail SMTP configuration.
-#
-# NOTE:
-# Render Free may block outbound SMTP connections.
-# If SMTP does not work on Render, use Gmail API or an HTTP
-# email provider instead.
 
 EAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
