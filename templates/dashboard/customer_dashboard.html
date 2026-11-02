@@ -99,17 +99,17 @@
       <section class="grid md:grid-cols-3 gap-4 sm:gap-5">
         <div class="bg-gradient-to-br from-teal to-teal-dark text-paper rounded-2xl p-5 sm:p-6">
           <p class="text-xs text-paper/70">Checking · withdrawable</p>
-          <p id="bal-checking" class="notranslate font-display text-3xl sm:text-4xl mt-3 break-words" translate="no"> ${{ balance.checking|floatformat:2 }}</p>
+          <p id="bal-checking" class="notranslate font-display text-3xl sm:text-4xl mt-3 break-words" translate="no"> #{{ balance.checking|floatformat:2 }}</p>
           <button onclick="openModal('withdraw')" class="mt-5 text-xs bg-white/15 hover:bg-white/25 transition-colors px-3.5 py-2 rounded-full">Withdraw funds</button>
         </div>
         <div class="bg-white rounded-2xl p-5 sm:p-6 border border-mist">
           <p class="text-xs text-slate-450">Savings</p>
-          <p id="bal-savings" class="notranslate font-display text-3xl sm:text-4xl mt-3 text-ink break-words" translate="no"> ${{ balance.savings|floatformat:2 }}</p>
+          <p id="bal-savings" class="notranslate font-display text-3xl sm:text-4xl mt-3 text-ink break-words" translate="no"> #{{ balance.savings|floatformat:2 }}</p>
           <button onclick="openModal('transfer')" class="mt-5 text-xs bg-mist/60 hover:bg-mist transition-colors px-3.5 py-2 rounded-full text-ink">Move to checking</button>
         </div>
         <div id="deposit" class="bg-white rounded-2xl p-5 sm:p-6 border border-mist">
           <p class="text-xs text-slate-450">Fixed deposit · {{ balance.fixed_rate }}% p.a.</p>
-          <p id="bal-fixed" class="notranslate font-display text-3xl sm:text-4xl mt-3 text-ink break-words" translate="no"> ${{ balance.fixed_amount|floatformat:2 }}</p>
+          <p id="bal-fixed" class="notranslate font-display text-3xl sm:text-4xl mt-3 text-ink break-words" translate="no"> #{{ balance.fixed_amount|floatformat:2 }}</p>
           <p class="mt-5 text-xs text-slate-450">Matures <span class="text-ink font-medium">{{ balance.fixed_maturity|date:"j M Y" }}</span></p>
         </div>
       </section>
