@@ -333,8 +333,8 @@
   paintFreeze();
 
   function applyBalance(b) {
-    document.getElementById('bal-checking').textContent = Vaultra.formatCurrency(b.checking).replace('₦', '');
-    document.getElementById('bal-savings').textContent = Vaultra.formatCurrency(b.savings).replace('₦', '');
+    document.getElementById('bal-checking').textContent = Vaultra.formatCurrency(b.checking).replace('$', '');
+    document.getElementById('bal-savings').textContent = Vaultra.formatCurrency(b.savings).replace('$', '');
 
   }
 
@@ -455,7 +455,7 @@
     document.getElementById('modal-error').classList.add('hidden');
     document.getElementById('modal-amount').value = '';
     document.getElementById('modal-title').textContent = mode === 'withdraw' ? 'Withdraw funds' : 'Move savings to checking';
-    document.getElementById('modal-sub').textContent = mode === 'withdraw' ? 'Requests over ₦200 are queued for review before they clear.' : 'Transfers between your own accounts are instant.';
+    document.getElementById('modal-sub').textContent = mode === 'withdraw' ? 'Requests over $200 are queued for review before they clear.' : 'Transfers between your own accounts are instant.';
   }
   function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); lockScroll(false); }
 
@@ -522,7 +522,7 @@
         { label: 'Savings', data: savingsSeries, borderColor: '#C9A227', backgroundColor: savingsGradient, borderWidth: 2.5, tension: 0.45, fill: true, pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: '#C9A227' },
       ] },
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false } },
-        scales: { x: { grid: { display: false }, ticks: { color: '#5B6472', font: { size: 11 } } }, y: { grid: { color: '#E9E4D8' }, ticks: { color: '#5B6472', font: { size: 11 }, maxTicksLimit: 6, callback: (v) => '₦' + v / 1000 + 'k' } } } },
+        scales: { x: { grid: { display: false }, ticks: { color: '#5B6472', font: { size: 11 } } }, y: { grid: { color: '#E9E4D8' }, ticks: { color: '#5B6472', font: { size: 11 }, maxTicksLimit: 6, callback: (v) => '$' + v / 1000 + 'k' } } } },
     });
 
     const radarCtx = document.getElementById('spendingRadarChart').getContext('2d');
