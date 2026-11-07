@@ -332,32 +332,36 @@
     </form>
   </div>
 </div>
-<!-- Edit transaction date/time modal -->
+
+<!-- Edit transaction date and time modal -->
 <div id="datetime-modal-backdrop"
-  class="hidden fixed inset-0 bg-ink/50 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6">
+  class="hidden fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
   <div class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md max-h-[92dvh] overflow-y-auto pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h3 class="font-display text-lg text-ink">Edit transaction date and time</h3>
-        <p class="mt-1 text-sm text-slate-450">Update the displayed transaction timestamp.</p>
-      </div>
-      <button type="button" onclick="closeDateTimeModal()" aria-label="Close"
-        class="w-8 h-8 rounded-full bg-mist/60 hover:bg-mist text-ink">×</button>
-    </div>
+    <h3 class="font-display text-lg text-ink">Edit transaction date and time</h3>
+    <p class="mt-1 text-sm text-slate-450">Correct the transaction timestamp. A reason is required for audit purposes.</p>
     <form id="datetime-modal-form" class="mt-5 space-y-4">
-      <input id="datetime-transaction-id" type="hidden">
+      <input type="hidden" id="datetime-transaction-id" />
       <div>
         <label for="datetime-date" class="block text-sm font-medium text-ink mb-1.5">Transaction date</label>
-        <input id="datetime-date" type="date" required
-          class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal">
+        <input id="datetime-date" name="date" type="date" required
+          class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal" />
       </div>
       <div>
         <label for="datetime-time" class="block text-sm font-medium text-ink mb-1.5">Transaction time</label>
-        <input id="datetime-time" type="time" required
-          class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal">
+        <input id="datetime-time" name="time" type="time" step="1" required
+          class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal" />
       </div>
-      <p class="text-xs text-slate-450">The saved date and time will be reflected in the transaction history after the server confirms the update.</p>
-      <p id="datetime-modal-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+      <div>
+        <label for="datetime-reason" class="block text-sm font-medium text-ink mb-1.5">Reason for correction <span class="text-red-600">*</span></label>
+        <textarea id="datetime-reason" name="reason" rows="3" minlength="5" maxlength="255" required
+          placeholder="Explain why this transaction date/time is being corrected."
+          class="w-full rounded-xl border border-mist px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal resize-y"></textarea>
+        <div class="flex justify-between gap-2 mt-1">
+          <p class="text-xs text-slate-450">Enter at least 5 characters (maximum 255).</p>
+          <span id="datetime-reason-counter" class="text-xs text-slate-450">0/255</span>
+        </div>
+      </div>
+      <p id="datetime-modal-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2" role="alert"></p>
       <div class="flex gap-3">
         <button type="button" onclick="closeDateTimeModal()"
           class="flex-1 border border-mist text-ink py-3 rounded-xl hover:bg-mist/50 transition-colors">Cancel</button>
@@ -379,7 +383,6 @@
     adjust: (id) => "{% url 'banking:api_admin_adjust_balance' user_id=0 %}".replace('0', id),
     freeze: (id) => "{% url 'banking:api_admin_toggle_freeze' user_id=0 %}".replace('0', id),
     txStatus: (id) => "{% url 'banking:api_admin_transaction_set_status' tx_id='00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', id),
-    // Backend endpoint required: POST date=YYYY-MM-DD and time=HH:MM.
     txDateTime: (id) => `/api/admin/transactions/${encodeURIComponent(id)}/update-datetime/`,
     liveList: "{% url 'banking:api_admin_live_status_list' %}",
     liveSet: (id) => "{% url 'banking:api_admin_live_status_set' user_id=0 %}".replace('0', id),
@@ -489,17 +492,7 @@
       columns: [{ key: 'customer', label: 'Customer', sortable: false }, { key: 'desc', label: 'Description', sortable: false }, { key: 'category', label: 'Category', sortable: false }, { key: 'date', label: 'Date' }, { key: 'status', label: 'Status' }, { key: 'amount', label: 'Amount', align: 'right' }, { key: '', label: 'Action', align: 'right', sortable: false }],
       filters: [{ key: 'status', label: 'Status', options: STATUS_OPTIONS }, { key: 'category', label: 'Category', options: catOptions() }],
       defaultSort: { key: 'date', dir: 'desc' }, emptyText: 'No transactions match that search.',
-      renderRow: (t) => `<tr>
-        <td class="px-4 sm:px-6 lg:px-8 py-3.5 text-ink font-medium whitespace-nowrap"><span class="notranslate" translate="no">${t.customer}</span></td>
-        <td class="px-4 py-3.5 text-slate-450">${t.desc}</td>
-        <td class="px-4 py-3.5">${categoryBadge(t.category)}</td>
-        <td class="px-4 py-3.5 text-slate-450 whitespace-nowrap">${t.date}</td>
-        <td class="px-4 py-3.5">${statusBadge(t.status)}</td>
-        <td class="notranslate px-4 sm:px-6 lg:px-8 py-3.5 text-right font-medium ${t.type === 'credit' ? 'text-teal' : 'text-ink'} whitespace-nowrap" translate="no">${t.type === 'credit' ? '+' : '−'} ${fmt(t.amount)}</td>
-        <td class="px-4 py-3.5 text-right whitespace-nowrap">
-          <button type="button" onclick="openDateTimeModal('${t.id}', '${String(t.datetime || '').replace(/'/g, '&#39;')}', '${String(t.date || '').replace(/'/g, '&#39;')}')"
-            class="text-xs font-medium px-3 py-1.5 rounded-full bg-mist/60 hover:bg-mist transition-colors text-ink">Edit date/time</button>
-        </td></tr>`,
+      renderRow: (t) => `<tr><td class="px-4 sm:px-6 lg:px-8 py-3.5 text-ink font-medium whitespace-nowrap"><span class="notranslate" translate="no">${t.customer}</span></td><td class="px-4 py-3.5 text-slate-450">${t.desc}</td><td class="px-4 py-3.5">${categoryBadge(t.category)}</td><td class="px-4 py-3.5 text-slate-450 whitespace-nowrap">${t.date}</td><td class="px-4 py-3.5">${statusBadge(t.status)}</td><td class="notranslate px-4 sm:px-6 lg:px-8 py-3.5 text-right font-medium ${t.type === 'credit' ? 'text-teal' : 'text-ink'} whitespace-nowrap" translate="no">${t.type === 'credit' ? '+' : '−'} ${fmt(t.amount)}</td><td class="px-4 py-3.5 text-right whitespace-nowrap"><button type="button" onclick="openDateTimeModal('${String(t.id).replace(/'/g, '&#39;')}', '${String(t.date || '').replace(/'/g, '&#39;')}')" class="text-xs font-medium px-3 py-1.5 rounded-full bg-mist/60 hover:bg-mist text-ink transition-colors">Edit date/time</button></td></tr>`,
     });
     attachPagination(el, pageSize || 6);
   }
@@ -724,23 +717,39 @@
 
   async function setTx(txId, status) { await Vaultra.api.postForm(URLS.txStatus(txId), { status }); renderStats(); refreshAllSmartTables(); paintNotifications(); }
 
-  // --- Transaction date/time editor ------------------------------------
-  function toDateTimeParts(value, fallback) {
-    const parsed = value ? new Date(value) : new Date(fallback || '');
+  function openModal(userId) {
+    activeUserId = userId;
+    document.getElementById('modal-amount').value = '';
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); document.body.style.overflow = ''; }
+
+  // --- Transaction date/time correction --------------------------------
+  function toDateTimeParts(value) {
+    if (!value) return { date: '', time: '' };
+    const raw = String(value).trim();
+    // Django ISO datetime values are parsed directly to avoid locale-dependent formatting.
+    const match = raw.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?/);
+    if (match) return { date: match[1], time: match[2] + (match[3] ? ':' + match[3] : '') };
+    const dateOnly = raw.match(/^(\d{4}-\d{2}-\d{2})$/);
+    if (dateOnly) return { date: dateOnly[1], time: '00:00' };
+    const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return { date: '', time: '' };
     const pad = (n) => String(n).padStart(2, '0');
-    return {
-      date: `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`,
-      time: `${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`
-    };
+    return { date: `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`, time: `${pad(parsed.getHours())}:${pad(parsed.getMinutes())}:${pad(parsed.getSeconds())}` };
   }
 
-  function openDateTimeModal(txId, datetimeValue, displayDate) {
-    const parts = toDateTimeParts(datetimeValue, displayDate);
-    document.getElementById('datetime-transaction-id').value = txId;
+  function openDateTimeModal(txId, datetimeValue) {
+    const parts = toDateTimeParts(datetimeValue);
+    document.getElementById('datetime-transaction-id').value = txId || '';
     document.getElementById('datetime-date').value = parts.date;
     document.getElementById('datetime-time').value = parts.time;
+    document.getElementById('datetime-reason').value = '';
+    document.getElementById('datetime-reason-counter').textContent = '0/255';
     document.getElementById('datetime-modal-error').classList.add('hidden');
+    document.getElementById('datetime-modal-submit').disabled = false;
+    document.getElementById('datetime-modal-submit').textContent = 'Save changes';
     document.getElementById('datetime-modal-backdrop').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -749,6 +758,10 @@
     document.getElementById('datetime-modal-backdrop').classList.add('hidden');
     document.body.style.overflow = '';
   }
+
+  document.getElementById('datetime-reason').addEventListener('input', function () {
+    document.getElementById('datetime-reason-counter').textContent = `${this.value.length}/255`;
+  });
 
   document.getElementById('datetime-modal-backdrop').addEventListener('click', (e) => {
     if (e.target.id === 'datetime-modal-backdrop') closeDateTimeModal();
@@ -759,53 +772,47 @@
     const txId = document.getElementById('datetime-transaction-id').value;
     const date = document.getElementById('datetime-date').value;
     const time = document.getElementById('datetime-time').value;
+    const reason = document.getElementById('datetime-reason').value.trim();
     const error = document.getElementById('datetime-modal-error');
     const submit = document.getElementById('datetime-modal-submit');
+    error.classList.add('hidden');
 
     if (!txId || !date || !time) {
-      error.textContent = 'Please select both a date and a time.';
+      error.textContent = 'Please provide a valid transaction date and time.';
+      error.classList.remove('hidden');
+      return;
+    }
+    if (reason.length < 5 || reason.length > 255) {
+      error.textContent = 'Please provide a reason between 5 and 255 characters.';
       error.classList.remove('hidden');
       return;
     }
 
     submit.disabled = true;
     submit.textContent = 'Saving…';
-    error.classList.add('hidden');
-
     try {
       const response = await fetch(URLS.txDateTime(txId), {
         method: 'POST',
-        headers: {
-          'X-CSRFToken': csrfToken,
-          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-        },
-        body: new URLSearchParams({ date, time })
+        headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: new URLSearchParams({ date, time, reason }),
       });
-
-      const result = await response.json().catch(() => ({}));
+      const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(result.detail || result.error || 'Unable to update the transaction date and time.');
+        const message = payload.error || payload.detail || payload.message || (payload.errors ? Object.values(payload.errors).flat().join(' ') : '') || 'Unable to update the transaction date/time. Please try again.';
+        throw new Error(message);
       }
-
       closeDateTimeModal();
       refreshAllSmartTables();
+      renderStats();
       paintNotifications();
     } catch (err) {
-      error.textContent = err.message || 'Unable to update the transaction date and time. Please try again.';
+      error.textContent = err.message || 'An unexpected error occurred. Please try again.';
       error.classList.remove('hidden');
     } finally {
       submit.disabled = false;
       submit.textContent = 'Save changes';
     }
   });
-
-  function openModal(userId) {
-    activeUserId = userId;
-    document.getElementById('modal-amount').value = '';
-    document.getElementById('modal-backdrop').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); document.body.style.overflow = ''; }
 
   // --- Delete account ---------------------------------------------------
   function openDeleteModal(userId, name, accountNumber) {

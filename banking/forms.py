@@ -71,6 +71,7 @@ class AdminTransactionStatusForm(forms.Form):
     status = forms.ChoiceField(choices=[("completed", "Approve"), ("declined", "Decline")])
 
 
+    
 
 class AdminTransactionDateTimeForm(forms.Form):
     """Allows an administrator to correct a transaction's date and time."""
@@ -81,6 +82,7 @@ class AdminTransactionDateTimeForm(forms.Form):
             "type": "date",
             "class": INPUT,
         }),
+        required=True,
     )
 
     time = forms.TimeField(
@@ -89,11 +91,13 @@ class AdminTransactionDateTimeForm(forms.Form):
             "type": "time",
             "class": INPUT,
         }),
+        required=True,
     )
 
     reason = forms.CharField(
         max_length=255,
         min_length=5,
+        required=True,
         widget=forms.Textarea(attrs={
             "class": INPUT,
             "rows": 3,
