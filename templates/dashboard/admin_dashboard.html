@@ -77,7 +77,7 @@
               <p class="font-display text-sm text-ink">Notifications</p><button onclick="markAllNotifsRead()"
                 class="text-xs text-teal hover:underline py-1">Mark all read</button>
             </div>
-            <div id="notif-list" class="divide-y divide-mist"></div>
+            <!-- <div id="notif-list" class="divide-y divide-mist"></div> -->
           </div>
         </div>
         <form method="post" action="{% url 'accounts:logout' %}" class="lg:hidden">{% csrf_token %}<button type="submit"

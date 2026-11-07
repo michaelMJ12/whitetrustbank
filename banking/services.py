@@ -95,7 +95,7 @@ def send_external_transfer(user, *, bank_name, recipient_account_number, recipie
         description=f"{narration or 'Transfer'} to {recipient_name} — {bank_name}",
     )
     _notify(user, "External transfer submitted", f"${amount:,.2f} to {recipient_name} at {bank_name} is being processed.", tone="gold")
-    _notify_admins("New interbank transfer", f"{user.get_full_name() or user.email} sent $ to {bank_name}.")
+    _notify_admins("New interbank transfer", f"{user.get_full_name() or user.email} sent ${amount:,.2f} to {bank_name}.")
     return tx
 
 
