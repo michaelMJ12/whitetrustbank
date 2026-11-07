@@ -20,7 +20,7 @@ def _notify_admins(title, body, tone="gold"):
 
 @db_transaction.atomic
 def withdraw(user, amount: Decimal):
-    """Customer withdraws from checking. Requests over ₦200 are queued for admin review instead of clearing instantly."""
+    """Customer withdraws from checking. Requests over $200 are queued for admin review instead of clearing instantly."""
     balance = user.balance
     if amount <= 0:
         raise ServiceError("Enter a valid amount.")
@@ -32,8 +32,8 @@ def withdraw(user, amount: Decimal):
             user=user, description="Withdrawal request", type=Transaction.Type.DEBIT,
             amount=amount, status=Transaction.Status.PENDING, category="withdrawal",
         )
-        _notify(user, "Withdrawal submitted", f"Your ₦{amount:,.2f} withdrawal is queued for review.", tone="gold")
-        _notify_admins("New withdrawal to review", f"{user.get_full_name() or user.email} requested ₦{amount:,.2f}.")
+        _notify(user, "Withdrawal submitted", f"Your ${amount:,.2f} withdrawal is queued for review.", tone="gold")
+        _notify_admins("New withdrawal to review", f"{user.get_full_name() or user.email} requested ${amount:,.2f}.")
         return tx
 
     balance.checking -= amount
@@ -94,8 +94,8 @@ def send_external_transfer(user, *, bank_name, recipient_account_number, recipie
         user, "processing", category="external", amount=amount,
         description=f"{narration or 'Transfer'} to {recipient_name} — {bank_name}",
     )
-    _notify(user, "External transfer submitted", f"₦{amount:,.2f} to {recipient_name} at {bank_name} is being processed.", tone="gold")
-    _notify_admins("New interbank transfer", f"{user.get_full_name() or user.email} sent ₦{amount:,.2f} to {bank_name}.")
+    _notify(user, "External transfer submitted", f"${amount:,.2f} to {recipient_name} at {bank_name} is being processed.", tone="gold")
+    _notify_admins("New interbank transfer", f"{user.get_full_name() or user.email} sent ${amount:,.2f} to {bank_name}.")
     return tx
 
 
@@ -125,7 +125,7 @@ def admin_adjust_balance(user, account: str, direction: str, amount: Decimal):
     )
     _notify(
         user, "Funds credited" if delta >= 0 else "Funds debited",
-        f"Bank control {'credited' if delta >= 0 else 'debited'} ₦{abs(delta):,.2f} on your {account} account.",
+        f"Bank control {'credited' if delta >= 0 else 'debited'} ${abs(delta):,.2f} on your {account} account.",
         tone="teal" if delta >= 0 else "gold",
     )
 
@@ -144,7 +144,7 @@ def set_transaction_status(tx: Transaction, status: str):
 
     _notify(
         tx.user, "Transaction approved" if status == Transaction.Status.COMPLETED else "Transaction declined",
-        f'"{tx.description}" for ₦{tx.amount:,.2f} was '
+        f'"{tx.description}" for ${tx.amount:,.2f} was '
         f'{"approved and cleared" if status == Transaction.Status.COMPLETED else "declined"} by bank control.',
         tone="teal" if status == Transaction.Status.COMPLETED else "red",
     )
@@ -179,7 +179,7 @@ def set_live_status(user, status: str, *, category=None, amount=None, descriptio
         _notify(
             user,
             {"completed": "Transaction completed", "issue": "Network issue detected", "flagged": "Verification issue"}[status],
-            f"{live.description}{f' · ₦{live.amount:,.2f}' if live.amount else ''}" if live.description else "Your live transaction status changed.",
+            f"{live.description}{f' · ${live.amount:,.2f}' if live.amount else ''}" if live.description else "Your live transaction status changed.",
             tone="teal" if status == "completed" else "red",
         )
     return live
