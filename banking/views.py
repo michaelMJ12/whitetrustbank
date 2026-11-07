@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from django.views.decorators.http import require_GET
-
+from .forms import AdminTransactionDateTimeForm
+from . import services
 from . import services
 from .decorators import admin_required, customer_required, json_post_required
 from .forms import (
@@ -728,3 +730,57 @@ def api_admin_delete_account(request, user_id):
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
 
     return JsonResponse({"ok": True})
+
+
+@admin_required
+@json_post_required
+def api_admin_transaction_edit_datetime(request, tx_id):
+    """
+    Admin-only transaction date and time correction endpoint.
+    """
+
+    tx = get_object_or_404(Transaction, id=tx_id)
+
+    form = AdminTransactionDateTimeForm(request.POST)
+
+    if not form.is_valid():
+        return JsonResponse({
+            "success": False,
+            "errors": form.errors,
+        }, status=400)
+
+    try:
+        tx = services.admin_edit_transaction_datetime(
+            transaction_id=tx.id,
+            admin_user=request.user,
+            new_date=form.cleaned_data["date"],
+            new_time=form.cleaned_data["time"],
+            reason=form.cleaned_data["reason"],
+        )
+
+        return JsonResponse({
+            "success": True,
+            "message": "Transaction date and time updated successfully.",
+            "transaction": {
+                "id": str(tx.id),
+                "date": tx.date.isoformat(),
+                "time": timezone.localtime(
+                    tx.created_at
+                ).strftime("%H:%M:%S"),
+                "datetime": timezone.localtime(
+                    tx.created_at
+                ).isoformat(),
+            },
+        })
+
+    except Transaction.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "message": "Transaction not found.",
+        }, status=404)
+
+    except services.ServiceError as exc:
+        return JsonResponse({
+            "success": False,
+            "message": str(exc),
+        }, status=400)

@@ -2,6 +2,9 @@ from decimal import Decimal
 
 from django.db import transaction as db_transaction
 from django.utils import timezone
+from django.utils import timezone
+from datetime import datetime
+from .models import TransactionDateTimeAudit
 
 from .models import ExternalTransferDetail, LiveTransactionStatus, Notification, Transaction
 
@@ -196,3 +199,54 @@ def admin_delete_account(user, *, permanent=False):
         else:
             user.is_active = False
             user.save(update_fields=["is_active"])
+
+
+
+@db_transaction.atomic
+def admin_edit_transaction_datetime(
+    transaction_id,
+    admin_user,
+    new_date,
+    new_time,
+    reason,
+):
+    """
+    Allows an administrator to correct a transaction's date and time.
+    Preserves the original values in the audit history.
+    """
+
+    tx = Transaction.objects.select_for_update().get(
+        id=transaction_id
+    )
+
+    if not reason or len(reason.strip()) < 5:
+        raise ServiceError("A valid correction reason is required.")
+
+    old_date = tx.date
+    old_datetime = tx.created_at
+
+    new_datetime = datetime.combine(new_date, new_time)
+
+    if timezone.is_naive(new_datetime):
+        new_datetime = timezone.make_aware(
+            new_datetime,
+            timezone.get_current_timezone(),
+        )
+
+    TransactionDateTimeAudit.objects.create(
+        transaction=tx,
+        transaction_id_snapshot=tx.id,
+        admin=admin_user,
+        old_date=old_date,
+        old_datetime=old_datetime,
+        new_date=new_date,
+        new_datetime=new_datetime,
+        reason=reason.strip(),
+    )
+
+    tx.date = new_date
+    tx.created_at = new_datetime
+
+    tx.save(update_fields=["date", "created_at"])
+
+    return tx

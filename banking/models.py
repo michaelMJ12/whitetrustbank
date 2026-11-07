@@ -166,3 +166,40 @@ class Notification(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+
+class TransactionDateTimeAudit(models.Model):
+    transaction = models.ForeignKey(
+        Transaction,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="datetime_audits",
+    )
+
+    transaction_id_snapshot = models.UUIDField()
+
+    admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="transaction_datetime_changes",
+    )
+
+    old_date = models.DateField()
+    old_datetime = models.DateTimeField()
+
+    new_date = models.DateField()
+    new_datetime = models.DateTimeField()
+
+    reason = models.CharField(max_length=255)
+
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-changed_at"]
+
+    def __str__(self):
+        return f"Transaction {self.transaction_id_snapshot} date/time correction"

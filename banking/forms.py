@@ -69,3 +69,34 @@ class AdminLiveStatusForm(forms.Form):
 class AdminTransactionStatusForm(forms.Form):
     """Backs the Approve / Decline buttons on the Pending transactions table."""
     status = forms.ChoiceField(choices=[("completed", "Approve"), ("declined", "Decline")])
+
+
+
+class AdminTransactionDateTimeForm(forms.Form):
+    """Allows an administrator to correct a transaction's date and time."""
+
+    date = forms.DateField(
+        input_formats=["%Y-%m-%d"],
+        widget=forms.DateInput(attrs={
+            "type": "date",
+            "class": INPUT,
+        }),
+    )
+
+    time = forms.TimeField(
+        input_formats=["%H:%M", "%H:%M:%S"],
+        widget=forms.TimeInput(attrs={
+            "type": "time",
+            "class": INPUT,
+        }),
+    )
+
+    reason = forms.CharField(
+        max_length=255,
+        min_length=5,
+        widget=forms.Textarea(attrs={
+            "class": INPUT,
+            "rows": 3,
+            "placeholder": "Explain why this transaction date/time is being corrected.",
+        }),
+    )

@@ -48,6 +48,7 @@ SECRET_KEY = os.environ.get(
 # Local default: True
 # Render: set DEBUG=False
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
+# DEBUG = True
 
 
 # ALLOWED HOSTS
@@ -265,7 +266,7 @@ LOGOUT_REDIRECT_URL = "landing"
 
 # Gmail SMTP configuration.
 
-EAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587

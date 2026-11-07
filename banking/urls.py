@@ -36,4 +36,6 @@ urlpatterns = [
     path("api/admin/notifications/", views.api_admin_notifications, name="api_admin_notifications"),
     path("api/admin/notifications/mark-all-read/", views.api_admin_notifications_mark_read, name="api_admin_notifications_mark_read"),
     path("api/admin/accounts/<int:user_id>/delete/",views.api_admin_delete_account,name="api_admin_delete_account",),
+    path("api/admin/transactions/<uuid:tx_id>/edit-datetime/", views.api_admin_transaction_edit_datetime, name="api_admin_transaction_edit_datetime",),
+    
 ]
