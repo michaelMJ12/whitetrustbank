@@ -66,6 +66,11 @@ ALLOWED_HOSTS_VALUE = os.getenv(
     ),
 )
 
+
+print("DEBUG ALLOWED_HOSTS:", ALLOWED_HOSTS)
+print("DEBUG RENDER HOST:", os.getenv("RENDER_EXTERNAL_HOSTNAME"))
+
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in ALLOWED_HOSTS_VALUE.split(",")
