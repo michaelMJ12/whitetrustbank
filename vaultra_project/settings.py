@@ -67,8 +67,7 @@ ALLOWED_HOSTS_VALUE = os.getenv(
 )
 
 
-print("DEBUG ALLOWED_HOSTS:", ALLOWED_HOSTS)
-print("DEBUG RENDER HOST:", os.getenv("RENDER_EXTERNAL_HOSTNAME"))
+
 
 
 ALLOWED_HOSTS = [
@@ -84,6 +83,10 @@ if (
     and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS
 ):
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+
+print("DEBUG ALLOWED_HOSTS:", ALLOWED_HOSTS)
+print("DEBUG RENDER HOST:", os.getenv("RENDER_EXTERNAL_HOSTNAME"))    
 
 
 # ============================================================
