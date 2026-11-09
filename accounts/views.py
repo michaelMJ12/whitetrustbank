@@ -84,21 +84,33 @@ def login_view(request):
                     "role-based redirect follows."
                 )
 
-                # Email delivery must not interrupt login.
-                try:
+                # Email must never interrupt successful authentication.
+                send_login_email = getattr(
+                    settings,
+                    "SEND_LOGIN_EMAILS",
+                    False,
+                )
 
-                    email_sent = EmailService.send_login_email(user)
+                if send_login_email:
+
+                    email_sent = False
+
+                    try:
+                        email_sent = EmailService.send_login_email(user)
+
+                    except Exception:
+                        logger.exception(
+                            "Login notification email failed for user %s",
+                            user.pk,
+                        )
 
                     if email_sent:
-
                         messages.success(
                             request,
                             "Login successful. A security notification "
                             "has been sent to your email.",
                         )
-
                     else:
-
                         messages.warning(
                             request,
                             "Login successful, but the security notification "
@@ -106,18 +118,13 @@ def login_view(request):
                             "your account.",
                         )
 
-                except Exception:
-
-                    logger.exception(
-                        "Unexpected error while sending login notification."
-                    )
-
-                    messages.warning(
+                else:
+                    messages.success(
                         request,
-                        "Login successful, but the security notification "
-                        "could not be sent.",
+                        "Login successful.",
                     )
 
+                # Always redirect after successful authentication.
                 return _redirect_for_role(user)
 
             login_form.add_error(

@@ -511,3 +511,12 @@ if (
         "DEFAULT_FROM_EMAIL differs from GMAIL_EMAIL. "
         "Verify that Gmail permits the sender address."
     )
+
+
+
+SEND_LOGIN_EMAILS = (
+    os.getenv("SEND_LOGIN_EMAILS", "False").lower()
+    in ("true", "1", "yes")
+)
+
+EMAIL_TIMEOUT = 5
