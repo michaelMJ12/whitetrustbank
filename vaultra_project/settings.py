@@ -491,26 +491,26 @@ if not DEBUG:
 # They allow the application to start even if email is not yet
 # configured, while making missing settings visible in logs.
 
-if not EMAIL_HOST_USER:
-    import logging
-    logging.getLogger(__name__).warning(
-        "GMAIL_EMAIL is not configured. Email delivery will not work."
-    )
+# if not EMAIL_HOST_USER:
+#     import logging
+#     logging.getLogger(__name__).warning(
+#         "GMAIL_EMAIL is not configured. Email delivery will not work."
+#     )
 
-if not EMAIL_HOST_PASSWORD:
-    import logging
-    logging.getLogger(__name__).warning(
-        "GMAIL_APP_PASSWORD is not configured. Email delivery will not work."
-    )
+# if not EMAIL_HOST_PASSWORD:
+#     import logging
+#     logging.getLogger(__name__).warning(
+#         "GMAIL_APP_PASSWORD is not configured. Email delivery will not work."
+#     )
 
-if (
-    EMAIL_HOST_USER
-    and DEFAULT_FROM_EMAIL
-    and EMAIL_HOST_USER.lower()
-    not in DEFAULT_FROM_EMAIL.lower()
-):
-    import logging
-    logging.getLogger(__name__).warning(
-        "DEFAULT_FROM_EMAIL differs from GMAIL_EMAIL. "
-        "Verify that Gmail permits the sender address."
-    )
+# if (
+#     EMAIL_HOST_USER
+#     and DEFAULT_FROM_EMAIL
+#     and EMAIL_HOST_USER.lower()
+#     not in DEFAULT_FROM_EMAIL.lower()
+# ):
+#     import logging
+#     logging.getLogger(__name__).warning(
+#         "DEFAULT_FROM_EMAIL differs from GMAIL_EMAIL. "
+#         "Verify that Gmail permits the sender address."
+#     )
