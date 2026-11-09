@@ -1,15 +1,3 @@
-"""
-Django settings for the Vaultra / White Trust Bank project.
-
-Configured for:
-- Local development with SQLite
-- Render production with PostgreSQL
-- Environment-based secrets and configuration
-- WhiteNoise static file serving
-- Custom accounts.User authentication
-- Gmail SMTP configuration
-"""
-
 from pathlib import Path
 import os
 
@@ -23,74 +11,89 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env locally if it exists.
-# On Render, environment variables are provided by Render directly.
-load_dotenv(BASE_DIR / ".env")
+# Load local .env file.
+# Render environment variables override local configuration.
+load_dotenv(BASE_DIR / ".env", override=False)
 
 
 # ============================================================
-# SECURITY
+# SECURITY / ENVIRONMENT CONFIGURATION
 # ============================================================
 
-# IMPORTANT:
-# Set SECRET_KEY in Render Environment Variables.
-#
-# Local development can use the fallback below, but never rely
-# on this fallback for production.
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "dev-only-secret-key-change-me-before-deploying",
+SECRET_KEY = (
+    os.getenv("VAULTRA_SECRET_KEY")
+    or os.getenv("SECRET_KEY")
+)
+
+if not SECRET_KEY:
+    raise RuntimeError(
+        "SECRET_KEY is missing. Configure VAULTRA_SECRET_KEY "
+        "or SECRET_KEY in your environment."
+    )
+
+
+# ============================================================
+# DEBUG
+# ============================================================
+
+DEBUG_VALUE = os.getenv(
+    "VAULTRA_DEBUG",
+    os.getenv("DEBUG", "False"),
+)
+
+DEBUG = DEBUG_VALUE.strip().lower() in (
+    "true",
+    "1",
+    "yes",
+    "on",
 )
 
 
-# DEBUG
-#
-# Local default: True
-# Render: set DEBUG=False
-DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
-# DEBUG = True
-
-
+# ============================================================
 # ALLOWED HOSTS
-#
-# Local:
-#   127.0.0.1,localhost
-#
-# Render:
-#   whitetrustbank.com,www.whitetrustbank.com,
-#   your-service.onrender.com
-#
-# You can override this through the ALLOWED_HOSTS
-# environment variable.
+# ============================================================
+
+ALLOWED_HOSTS_VALUE = os.getenv(
+    "VAULTRA_ALLOWED_HOSTS",
+    os.getenv(
+        "ALLOWED_HOSTS",
+        (
+            "127.0.0.1,localhost,"
+            "whitetrustltd.com,"
+            "www.whitetrustltd.com,"
+            "whitetrustbank.onrender.com"
+        ),
+    ),
+)
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get(
-        "ALLOWED_HOSTS",
-        "127.0.0.1,localhost,whitetrustltd.com,www.whitetrustltd.com,whitetrustbank.onrender.com"
-    ).split(",")
+    for host in ALLOWED_HOSTS_VALUE.split(",")
     if host.strip()
 ]
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 
-if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+if (
+    RENDER_EXTERNAL_HOSTNAME
+    and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS
+):
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
-
+# ============================================================
 # CSRF TRUSTED ORIGINS
-#
-# Render production should contain:
-# https://whitetrustbank.com
-# https://www.whitetrustbank.com
-#
-# Add your Render URL if necessary.
+# ============================================================
+
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get(
+    for origin in os.getenv(
         "CSRF_TRUSTED_ORIGINS",
-        "https://whitetrustltd.com,https://www.whitetrustltd.com,https://whitetrustbank.onrender.com"
+        (
+            "https://whitetrustltd.com,"
+            "https://www.whitetrustltd.com,"
+            "https://whitetrustbank.onrender.com"
+        ),
     ).split(",")
     if origin.strip()
 ]
@@ -173,17 +176,16 @@ ASGI_APPLICATION = "vaultra_project.asgi.application"
 # ============================================================
 
 # Local development:
-#   SQLite is used when DATABASE_URL is not available.
+# SQLite is used when DATABASE_URL is not available.
 #
 # Render production:
-#   Render PostgreSQL provides DATABASE_URL automatically
-#   when the database is connected to the web service.
+# Render PostgreSQL provides DATABASE_URL automatically.
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if not DATABASE_URL and not DEBUG:
     raise RuntimeError(
-        "DATABASE_URL is required in production."
+        "DATABASE_URL is required when DEBUG=False."
     )
 
 if DATABASE_URL:
@@ -201,6 +203,7 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
 
 # ============================================================
 # PASSWORD VALIDATION
@@ -243,15 +246,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "accounts.User"
 
-
-# Login authenticates by email through the custom backend.
-# Django ModelBackend remains available for Django admin and
-# standard username/password authentication.
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.EmailBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
-
 
 LOGIN_URL = "accounts:login"
 
@@ -261,29 +259,56 @@ LOGOUT_REDIRECT_URL = "landing"
 
 
 # ============================================================
-# GMAIL / EMAIL CONFIGURATION
+# GMAIL SMTP / EMAIL CONFIGURATION
 # ============================================================
 
-# Gmail SMTP configuration.
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-
-EMAIL_HOST_USER = os.environ.get("GMAIL_EMAIL", "")
-EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL",
-    f"White Trust Bank <{EMAIL_HOST_USER}>",
+# Gmail SMTP server configuration.
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
 )
 
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
-EMAIL_TIMEOUT = 15
+EMAIL_HOST = "smtp.gmail.com"
 
+EMAIL_PORT = 587
+
+# Gmail SMTP uses STARTTLS on port 587.
+EMAIL_USE_TLS = True
+
+EMAIL_USE_SSL = False
+
+# Gmail account used to authenticate with SMTP.
+EMAIL_HOST_USER = os.getenv(
+    "GMAIL_EMAIL",
+    "",
+).strip()
+
+# Google App Password.
+# Spaces are removed to support Google's grouped display format.
+EMAIL_HOST_PASSWORD = os.getenv(
+    "GMAIL_APP_PASSWORD",
+    "",
+).replace(" ", "").strip()
+
+# Sender address displayed to recipients.
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    f"White Trust Bank <{EMAIL_HOST_USER}>",
+).strip()
+
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+EMAIL_TIMEOUT = 30
+
+# Do not silently ignore SMTP errors.
+# send_mail(..., fail_silently=False) will expose errors.
+
+
+# ============================================================
+# PASSWORD RESET CONFIGURATION
+# ============================================================
+
+# Password reset links expire after one hour.
+PASSWORD_RESET_TIMEOUT = 3600
 
 
 # ============================================================
@@ -314,12 +339,16 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
-# WhiteNoise storage.
-#
+# ============================================================
+# WHITENOISE STORAGE
+# ============================================================
+
 # Django 4.2 supports the STORAGES setting.
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": (
+            "django.core.files.storage.FileSystemStorage"
+        ),
     },
     "staticfiles": {
         "BACKEND": (
@@ -346,36 +375,63 @@ CSRF_COOKIE_SECURE = not DEBUG
 
 SESSION_COOKIE_SECURE = not DEBUG
 
-
-# Keep False initially while configuring Render/custom domain.
-# Once HTTPS is confirmed to work correctly, this can be changed
-# to True.
+# Keep False until HTTPS and reverse-proxy configuration
+# have been verified.
 SECURE_SSL_REDIRECT = False
 
-
-# Tell Django that Render's reverse proxy is handling HTTPS.
+# Tell Django that Render's reverse proxy handles HTTPS.
 SECURE_PROXY_SSL_HEADER = (
     "HTTP_X_FORWARDED_PROTO",
     "https",
 )
 
 
+# ============================================================
+# LOGGING
+# ============================================================
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+
+    "formatters": {
+        "verbose": {
+            "format": (
+                "{levelname} {asctime} "
+                "{name} {message}"
+            ),
+            "style": "{",
+        },
+    },
+
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
     },
+
     "root": {
         "handlers": ["console"],
-        "level": "WARNING",
+        "level": "INFO" if DEBUG else "WARNING",
     },
+
     "loggers": {
         "django.request": {
             "handlers": ["console"],
             "level": "ERROR",
+            "propagate": False,
+        },
+
+        "django.core.mail": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+
+        "accounts": {
+            "handlers": ["console"],
+            "level": "INFO",
             "propagate": False,
         },
     },
@@ -387,3 +443,65 @@ LOGGING = {
 # ============================================================
 
 MESSAGE_TAGS = {}
+
+
+# ============================================================
+# PRODUCTION SECURITY SETTINGS
+# ============================================================
+
+# Enable HTTPS-related protection when running in production.
+if not DEBUG:
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    X_FRAME_OPTIONS = "DENY"
+
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+    # Enable HSTS only after confirming HTTPS works correctly.
+    # Set these through environment variables when ready.
+    SECURE_HSTS_SECONDS = int(
+        os.getenv("SECURE_HSTS_SECONDS", "0")
+    )
+
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = (
+        os.getenv(
+            "SECURE_HSTS_INCLUDE_SUBDOMAINS",
+            "False",
+        ).lower() in ("true", "1", "yes")
+    )
+
+    SECURE_HSTS_PRELOAD = False
+
+
+# ============================================================
+# EMAIL CONFIGURATION VALIDATION
+# ============================================================
+
+# These checks intentionally do not print or expose credentials.
+# They allow the application to start even if email is not yet
+# configured, while making missing settings visible in logs.
+
+if not EMAIL_HOST_USER:
+    import logging
+    logging.getLogger(__name__).warning(
+        "GMAIL_EMAIL is not configured. Email delivery will not work."
+    )
+
+if not EMAIL_HOST_PASSWORD:
+    import logging
+    logging.getLogger(__name__).warning(
+        "GMAIL_APP_PASSWORD is not configured. Email delivery will not work."
+    )
+
+if (
+    EMAIL_HOST_USER
+    and DEFAULT_FROM_EMAIL
+    and EMAIL_HOST_USER.lower()
+    not in DEFAULT_FROM_EMAIL.lower()
+):
+    import logging
+    logging.getLogger(__name__).warning(
+        "DEFAULT_FROM_EMAIL differs from GMAIL_EMAIL. "
+        "Verify that Gmail permits the sender address."
+    )

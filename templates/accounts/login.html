@@ -1,353 +1,685 @@
+
 {% extends "base.html" %}
 {% load static %}
+
 {% block title %}whitetrustltd.com{% endblock %}
+
 {% block content %}
 
 <div class="min-h-screen grid lg:grid-cols-2">
 
-  <!-- Brand panel -->
-  <div class="hidden lg:flex relative flex-col justify-between bg-ink p-12 overflow-hidden">
-    <div class="absolute inset-0 opacity-40"
-         style="background: radial-gradient(circle at 20% 20%, #0F5C4E, transparent 55%), radial-gradient(circle at 80% 70%, #17836F, transparent 50%);">
+    <!-- ====================================================== -->
+    <!-- BRAND PANEL -->
+    <!-- ====================================================== -->
+
+    <div class="hidden lg:flex relative flex-col justify-between bg-ink p-12 overflow-hidden">
+
+        <div
+            class="absolute inset-0 opacity-40"
+            style="background: radial-gradient(circle at 20% 20%, #0F5C4E, transparent 55%), radial-gradient(circle at 80% 70%, #17836F, transparent 50%);">
+        </div>
+
+        <div class="relative">
+
+            <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
+
+                <img
+                    src="{% static 'images/logo.png' %}"
+                    alt="White Trust Bank"
+                    width="50"
+                    height="50"
+                    class="rounded-full"
+                >
+
+                <span class="font-display font-semibold text-xl text-paper">
+                    White Trust Bank
+                </span>
+
+            </a>
+
+        </div>
+
+        <div class="relative max-w-sm">
+
+            <p class="font-display text-3xl text-paper leading-snug">
+                "Froze my card from a taxi at 11pm. Took four seconds."
+            </p>
+
+            <p class="mt-4 text-mist/60 text-sm">
+                — Michael B., customer since 2019
+            </p>
+
+        </div>
+
+        <div class="relative flex gap-8 text-mist/40 text-xs">
+
+            <span>Member-insured deposits</span>
+            <span>256-bit encryption</span>
+
+        </div>
+
     </div>
 
-    <div class="relative">
-      <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
-        <img src="{% static 'images/logo.png' %}" alt="" width="50px" height="50px" style="border-radius: 100%;">
-          <rect width="28" height="28" rx="7" fill="#0F5C4E"/>
-          <path d="M8 19V11.5L14 8L20 11.5V19"
-                stroke="#C9A227"
-                stroke-width="1.6"
-                stroke-linejoin="round"/>
-          <path d="M11 19V14.5H17V19"
-                stroke="#F7F5EF"
-                stroke-width="1.6"
-                stroke-linejoin="round"/>
-        </svg>
 
-        <span class="font-display font-semibold text-xl text-paper">
-          White Trust Bank
-        </span>
-      </a>
-    </div>
+    <!-- ====================================================== -->
+    <!-- FORM PANEL -->
+    <!-- ====================================================== -->
 
-    <div class="relative max-w-sm">
-      <p class="font-display text-3xl text-paper leading-snug">
-        "Froze my card from a taxi at 11pm. Took four seconds."
-      </p>
+    <div class="flex items-center justify-center p-6 sm:p-12">
 
-      <p class="mt-4 text-mist/60 text-sm">
-        — Michael B., customer since 2019
-      </p>
-    </div>
+        <div class="w-full max-w-sm">
 
-    <div class="relative flex gap-8 text-mist/40 text-xs">
-      <span>Member-insured deposits</span>
-      <span>256-bit encryption</span>
-    </div>
-  </div>
+            <!-- MOBILE LOGO -->
+
+            <a
+                href="{% url 'landing' %}"
+                class="lg:hidden flex items-center gap-2 mb-10"
+            >
+
+                <img
+                    src="{% static 'images/logo.png' %}"
+                    alt="White Trust Bank"
+                    width="50"
+                    height="50"
+                    class="rounded-full"
+                >
+
+                <span class="font-display font-semibold text-lg text-ink">
+                    White Trust Bank
+                </span>
+
+            </a>
 
 
-  <!-- Form panel -->
-  <div class="flex items-center justify-center p-6 sm:p-12">
-    <div class="w-full max-w-sm">
+            <!-- ================================================== -->
+            <!-- GLOBAL DJANGO MESSAGES -->
+            <!-- ================================================== -->
 
-      <!-- Mobile logo -->
-      <a href="{% url 'landing' %}" class="lg:hidden flex items-center gap-2 mb-10">
-        <img src="{% static 'images/logo.png' %}" alt="" width="50px" height="50px" style="border-radius: 100%;">
-          <rect width="28" height="28" rx="7" fill="#0F5C4E"/>
-          <path d="M8 19V11.5L14 8L20 11.5V19"
-                stroke="#C9A227"
-                stroke-width="1.6"
-                stroke-linejoin="round"/>
-          <path d="M11 19V14.5H17V19"
-                stroke="#F7F5EF"
-                stroke-width="1.6"
-                stroke-linejoin="round"/>
-        </svg>
+            {% if messages %}
 
-        <span class="font-display font-semibold text-lg text-ink">
-          White Trust Bank
-        </span>
-      </a>
+                <div class="mb-6 space-y-3">
 
+                    {% for message in messages %}
 
-      <!-- ========================================================= -->
-      <!-- LOGIN VIEW -->
-      <!-- ========================================================= -->
+                        <div
+                            role="alert"
+                            class="text-sm rounded-lg px-3 py-3 border
+                            {% if message.tags == 'success' %}
+                                text-green-700 bg-green-50 border-green-100
+                            {% elif message.tags == 'warning' %}
+                                text-yellow-800 bg-yellow-50 border-yellow-200
+                            {% else %}
+                                text-red-600 bg-red-50 border-red-100
+                            {% endif %}"
+                        >
+                            {{ message }}
 
-      <div id="login-view"
-           class="{% if active == 'signup' %}hidden{% endif %}">
+                        </div>
 
-        <h1 class="font-display text-2xl font-semibold text-ink">
-          Log in to your account
-        </h1>
+                    {% endfor %}
 
-        <p class="mt-2 text-sm text-slate-450">
-          Enter the email and password on file.
-        </p>
+                </div>
 
-
-        <form method="post"
-              action="{% url 'accounts:login' %}"
-              class="mt-8 space-y-4">
-
-          {% csrf_token %}
-
-          <!-- Email -->
-          <div>
-            <label
-              class="block text-sm font-medium text-ink mb-1.5"
-              for="{{ login_form.email.id_for_label }}">
-              Email
-            </label>
-
-            {{ login_form.email }}
-
-            {% if login_form.email.errors %}
-              <p class="mt-1 text-xs text-red-600">
-                {{ login_form.email.errors.0 }}
-              </p>
             {% endif %}
-          </div>
 
 
-          <!-- Password -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
+            <!-- ================================================== -->
+            <!-- LOGIN VIEW -->
+            <!-- ================================================== -->
 
-              <label
-                class="block text-sm font-medium text-ink"
-                for="{{ login_form.password.id_for_label }}">
-                Password
-              </label>
+            <div
+                id="login-view"
+                class="{% if active == 'signup' or active == 'forgot' or active == 'reset' %}hidden{% endif %}"
+            >
 
-              <a href="#"
-                 class="text-xs text-teal hover:underline">
-                Forgot password?
-              </a>
+                <h1 class="font-display text-2xl font-semibold text-ink">
+                    Log in to your account
+                </h1>
+
+                <p class="mt-2 text-sm text-slate-450">
+                    Enter the email and password on file.
+                </p>
+
+
+                <form
+                    method="post"
+                    action="{% url 'accounts:login' %}"
+                    class="mt-8 space-y-4"
+                >
+
+                    {% csrf_token %}
+
+                    <!-- EMAIL -->
+
+                    <div>
+
+                        <label
+                            class="block text-sm font-medium text-ink mb-1.5"
+                            for="{{ login_form.email.id_for_label }}"
+                        >
+                            Email
+                        </label>
+
+                        {{ login_form.email }}
+
+                        {% if login_form.email.errors %}
+
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ login_form.email.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- PASSWORD -->
+
+                    <div>
+
+                        <div class="flex items-center justify-between mb-1.5">
+
+                            <label
+                                class="block text-sm font-medium text-ink"
+                                for="{{ login_form.password.id_for_label }}"
+                            >
+                                Password
+                            </label>
+
+                            <button
+                                type="button"
+                                onclick="showForgot()"
+                                class="text-xs text-teal hover:underline"
+                            >
+                                Forgot password?
+                            </button>
+
+                        </div>
+
+                        {{ login_form.password }}
+
+                        {% if login_form.password.errors %}
+
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ login_form.password.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- LOGIN ERRORS -->
+
+                    {% if login_form.non_field_errors %}
+
+                        <div class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+
+                            {{ login_form.non_field_errors.0 }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- LOGIN BUTTON -->
+
+                    <button
+                        type="submit"
+                        class="w-full bg-teal text-paper font-medium py-3 rounded-xl hover:bg-teal-dark transition-colors"
+                    >
+                        Log in
+                    </button>
+
+                </form>
+
+
+                <!-- SIGNUP LINK -->
+
+                <p class="mt-8 text-center text-sm text-slate-450">
+
+                    New to White Trust Bank?
+
+                    <button
+                        type="button"
+                        onclick="showSignup()"
+                        class="text-teal font-medium hover:underline"
+                    >
+                        Open an account
+                    </button>
+
+                </p>
 
             </div>
 
-            {{ login_form.password }}
 
-            {% if login_form.password.errors %}
-              <p class="mt-1 text-xs text-red-600">
-                {{ login_form.password.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
+            <!-- ================================================== -->
+            <!-- SIGNUP VIEW -->
+            <!-- ================================================== -->
 
+            <div
+                id="signup-view"
+                class="{% if active != 'signup' %}hidden{% endif %}"
+            >
 
-          <!-- Login errors -->
-          {% if login_form.non_field_errors %}
-            <p class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-              {{ login_form.non_field_errors.0 }}
-            </p>
-          {% endif %}
+                <h1 class="font-display text-2xl font-semibold text-ink">
+                    Open an account
+                </h1>
 
-
-          <!-- Login button -->
-          <button
-            type="submit"
-            class="w-full bg-teal text-paper font-medium py-3 rounded-xl hover:bg-teal-dark transition-colors">
-            Log in
-          </button>
-
-        </form>
+                <p class="mt-2 text-sm text-slate-450">
+                    Takes about a minute — you'll land straight in your dashboard.
+                </p>
 
 
-        <!-- Demo credentials -->
-        <!-- <div class="mt-6 p-3.5 rounded-xl bg-mist/50 text-xs text-slate-450 leading-relaxed">
-          <p class="font-medium text-ink mb-1">
-            Demo credentials
-          </p>
+                <form
+                    method="post"
+                    action="{% url 'accounts:signup' %}"
+                    class="mt-8 space-y-4"
+                >
 
-          Create your own account below, or ask whoever seeded this database for a demo login.
-        </div> -->
-
-
-        <!-- Switch to signup -->
-        <p class="mt-8 text-center text-sm text-slate-450">
-          New to White Trust Bank?
-
-          <button
-            type="button"
-            onclick="showSignup()"
-            class="text-teal font-medium hover:underline">
-            Open an account
-          </button>
-        </p>
-
-      </div>
+                    {% csrf_token %}
 
 
+                    <!-- FULL NAME -->
 
-      <!-- ========================================================= -->
-      <!-- SIGN UP VIEW -->
-      <!-- ========================================================= -->
+                    <div>
 
-      <div id="signup-view"
-           class="{% if active != 'signup' %}hidden{% endif %}">
+                        <label
+                            class="block text-sm font-medium text-ink mb-1.5"
+                            for="{{ signup_form.full_name.id_for_label }}"
+                        >
+                            Full name
+                        </label>
 
-        <h1 class="font-display text-2xl font-semibold text-ink">
-          Open an account
-        </h1>
+                        {{ signup_form.full_name }}
 
-        <p class="mt-2 text-sm text-slate-450">
-          Takes about a minute — you'll land straight in your dashboard.
-        </p>
+                        {% if signup_form.full_name.errors %}
 
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ signup_form.full_name.errors.0 }}
+                            </p>
 
-        <form method="post"
-              action="{% url 'accounts:signup' %}"
-              class="mt-8 space-y-4">
+                        {% endif %}
 
-          {% csrf_token %}
-
-
-          <!-- ===================================================== -->
-          <!-- FULL NAME -->
-          <!-- ===================================================== -->
-
-          <div>
-            <label
-              class="block text-sm font-medium text-ink mb-1.5"
-              for="{{ signup_form.full_name.id_for_label }}">
-              Full name
-            </label>
-
-            {{ signup_form.full_name }}
-
-            {% if signup_form.full_name.errors %}
-              <p class="mt-1 text-xs text-red-600">
-                {{ signup_form.full_name.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
+                    </div>
 
 
-          <!-- ===================================================== -->
-          <!-- EMAIL -->
-          <!-- ===================================================== -->
+                    <!-- EMAIL -->
 
-          <div>
-            <label
-              class="block text-sm font-medium text-ink mb-1.5"
-              for="{{ signup_form.email.id_for_label }}">
-              Email
-            </label>
+                    <div>
 
-            {{ signup_form.email }}
+                        <label
+                            class="block text-sm font-medium text-ink mb-1.5"
+                            for="{{ signup_form.email.id_for_label }}"
+                        >
+                            Email
+                        </label>
 
-            {% if signup_form.email.errors %}
-              <p class="mt-1 text-xs text-red-600">
-                {{ signup_form.email.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
+                        {{ signup_form.email }}
 
+                        {% if signup_form.email.errors %}
 
-          <!-- ===================================================== -->
-          <!-- PHONE -->
-          <!-- ===================================================== -->
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ signup_form.email.errors.0 }}
+                            </p>
 
-          <div>
-            <label
-              class="block text-sm font-medium text-ink mb-1.5"
-              for="{{ signup_form.phone.id_for_label }}">
-              Phone number
-            </label>
+                        {% endif %}
 
-            {{ signup_form.phone }}
-
-            {% if signup_form.phone.errors %}
-              <p class="mt-1 text-xs text-red-600">
-                {{ signup_form.phone.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
+                    </div>
 
 
-          <!-- ===================================================== -->
-          <!-- PASSWORD -->
-          <!-- ===================================================== -->
+                    <!-- PHONE -->
 
-          <div>
-            <label
-              class="block text-sm font-medium text-ink mb-1.5"
-              for="{{ signup_form.password.id_for_label }}">
-              Create a password
-            </label>
+                    <div>
 
-            {{ signup_form.password }}
+                        <label
+                            class="block text-sm font-medium text-ink mb-1.5"
+                            for="{{ signup_form.phone.id_for_label }}"
+                        >
+                            Phone number
+                        </label>
 
-            {% if signup_form.password.errors %}
-              <p class="mt-1 text-xs text-red-600">
-                {{ signup_form.password.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
+                        {{ signup_form.phone }}
+
+                        {% if signup_form.phone.errors %}
+
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ signup_form.phone.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
 
 
-          <!-- ===================================================== -->
-          <!-- NON-FIELD ERRORS -->
-          <!-- ===================================================== -->
+                    <!-- PASSWORD -->
 
-          {% if signup_form.non_field_errors %}
-            <div class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-              {{ signup_form.non_field_errors.0 }}
+                    <div>
+
+                        <label
+                            class="block text-sm font-medium text-ink mb-1.5"
+                            for="{{ signup_form.password.id_for_label }}"
+                        >
+                            Create a password
+                        </label>
+
+                        {{ signup_form.password }}
+
+                        {% if signup_form.password.errors %}
+
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ signup_form.password.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- NON-FIELD ERRORS -->
+
+                    {% if signup_form.non_field_errors %}
+
+                        <div class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+
+                            {{ signup_form.non_field_errors.0 }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- ACCOUNT INFORMATION -->
+
+                    <div class="p-3.5 rounded-xl bg-mist/50 text-xs text-slate-450 leading-relaxed">
+
+                        <p class="font-medium text-ink mb-1">
+                            Your banking details
+                        </p>
+
+                        <p>
+                            Your White Trust Bank account number and card details
+                            will be generated automatically when your account
+                            is created.
+                        </p>
+
+                    </div>
+
+
+                    <!-- CREATE ACCOUNT -->
+
+                    <button
+                        type="submit"
+                        class="w-full bg-gold text-ink font-medium py-3 rounded-xl hover:bg-gold/90 transition-colors"
+                    >
+                        Create my account
+                    </button>
+
+                </form>
+
+
+                <!-- LOGIN LINK -->
+
+                <p class="mt-8 text-center text-sm text-slate-450">
+
+                    Already have an account?
+
+                    <button
+                        type="button"
+                        onclick="showLogin()"
+                        class="text-teal font-medium hover:underline"
+                    >
+                        Log in
+                    </button>
+
+                </p>
+
             </div>
-          {% endif %}
 
 
-          <!-- ===================================================== -->
-          <!-- ACCOUNT INFORMATION -->
-          <!-- ===================================================== -->
+            <!-- ================================================== -->
+            <!-- FORGOT PASSWORD VIEW -->
+            <!-- ================================================== -->
 
-          <div class="p-3.5 rounded-xl bg-mist/50 text-xs text-slate-450 leading-relaxed">
+            <div
+                id="forgot-view"
+                class="{% if active != 'forgot' %}hidden{% endif %}"
+            >
 
-            <p class="font-medium text-ink mb-1">
-              Your banking details
-            </p>
+                <h1 class="font-display text-2xl font-semibold text-ink">
+                    Forgot your password?
+                </h1>
 
-            <p>
-              Your White Trust Bank account number and card details will be
-              generated automatically when your account is created.
-            </p>
-
-          </div>
-
-
-          <!-- ===================================================== -->
-          <!-- CREATE ACCOUNT -->
-          <!-- ===================================================== -->
-
-          <button
-            type="submit"
-            class="w-full bg-gold text-ink font-medium py-3 rounded-xl hover:bg-gold/90 transition-colors">
-            Create my account
-          </button>
-
-        </form>
+                <p class="mt-2 text-sm text-slate-450">
+                    Enter your email address and we will send you a link
+                    to reset your password.
+                </p>
 
 
-        <!-- Switch to login -->
-        <p class="mt-8 text-center text-sm text-slate-450">
-          Already have an account?
+                <form
+                    method="post"
+                    action="{% url 'accounts:password_reset' %}"
+                    class="mt-8 space-y-4"
+                >
 
-          <button
-            type="button"
-            onclick="showLogin()"
-            class="text-teal font-medium hover:underline">
-            Log in
-          </button>
-        </p>
+                    {% csrf_token %}
 
-      </div>
+
+                    <!-- EMAIL -->
+
+                    <div>
+
+                        <label
+                            class="block text-sm font-medium text-ink mb-1.5"
+                            for="{{ password_reset_form.email.id_for_label }}"
+                        >
+                            Email address
+                        </label>
+
+                        {{ password_reset_form.email }}
+
+                        {% if password_reset_form.email.errors %}
+
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ password_reset_form.email.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if password_reset_form.non_field_errors %}
+
+                        <div class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+
+                            {{ password_reset_form.non_field_errors.0 }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- SEND RESET LINK -->
+
+                    <button
+                        type="submit"
+                        class="w-full bg-teal text-paper font-medium py-3 rounded-xl hover:bg-teal-dark transition-colors"
+                    >
+                        Send reset link
+                    </button>
+
+                </form>
+
+
+                <!-- BACK TO LOGIN -->
+
+                <p class="mt-8 text-center text-sm text-slate-450">
+
+                    Remembered your password?
+
+                    <button
+                        type="button"
+                        onclick="showLogin()"
+                        class="text-teal font-medium hover:underline"
+                    >
+                        Back to login
+                    </button>
+
+                </p>
+
+            </div>
+
+
+            <!-- ================================================== -->
+            <!-- RESET PASSWORD VIEW -->
+            <!-- ================================================== -->
+
+            <div
+                id="reset-view"
+                class="{% if active != 'reset' %}hidden{% endif %}"
+            >
+
+                {% if valid_link %}
+
+
+                    <h1 class="font-display text-2xl font-semibold text-ink">
+                        Choose a new password
+                    </h1>
+
+                    <p class="mt-2 text-sm text-slate-450">
+                        Create a strong password for your account.
+                    </p>
+
+
+                    <form
+                        method="post"
+                        action=""
+                        class="mt-8 space-y-4"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <!-- NEW PASSWORD -->
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-medium text-ink mb-1.5"
+                                for="{{ reset_form.new_password1.id_for_label }}"
+                            >
+                                New password
+                            </label>
+
+                            {{ reset_form.new_password1 }}
+
+                            {% if reset_form.new_password1.errors %}
+
+                                <p class="mt-1 text-xs text-red-600">
+                                    {{ reset_form.new_password1.errors.0 }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- CONFIRM PASSWORD -->
+
+                        <div>
+
+                            <label
+                                class="block text-sm font-medium text-ink mb-1.5"
+                                for="{{ reset_form.new_password2.id_for_label }}"
+                            >
+                                Confirm new password
+                            </label>
+
+                            {{ reset_form.new_password2 }}
+
+                            {% if reset_form.new_password2.errors %}
+
+                                <p class="mt-1 text-xs text-red-600">
+                                    {{ reset_form.new_password2.errors.0 }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- PASSWORD ERRORS -->
+
+                        {% if reset_form.non_field_errors %}
+
+                            <div class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+
+                                {{ reset_form.non_field_errors.0 }}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <!-- RESET BUTTON -->
+
+                        <button
+                            type="submit"
+                            class="w-full bg-teal text-paper font-medium py-3 rounded-xl hover:bg-teal-dark transition-colors"
+                        >
+                            Reset password
+                        </button>
+
+                    </form>
+
+
+                {% else %}
+
+
+                    <!-- INVALID OR EXPIRED LINK -->
+
+                    <h1 class="font-display text-2xl font-semibold text-ink">
+                        This link is not valid
+                    </h1>
+
+                    <p class="mt-2 text-sm text-slate-450">
+                        The password reset link is invalid, has expired,
+                        or has already been used.
+                    </p>
+
+
+                    <button
+                        type="button"
+                        onclick="showForgot()"
+                        class="mt-8 w-full bg-teal text-paper font-medium py-3 rounded-xl hover:bg-teal-dark transition-colors"
+                    >
+                        Request a new link
+                    </button>
+
+
+                {% endif %}
+
+
+                <!-- BACK TO LOGIN -->
+
+                <p class="mt-8 text-center text-sm text-slate-450">
+
+                    <button
+                        type="button"
+                        onclick="showLogin()"
+                        class="text-teal font-medium hover:underline"
+                    >
+                        Back to login
+                    </button>
+
+                </p>
+
+            </div>
+
+        </div>
 
     </div>
-  </div>
 
 </div>
 
@@ -358,35 +690,126 @@
 
 <script>
 
-  function showSignup() {
-    document.getElementById('login-view').classList.add('hidden');
-    document.getElementById('signup-view').classList.remove('hidden');
+    // ==========================================================
+    // VIEW MANAGEMENT
+    // ==========================================================
 
-    history.replaceState(
-      null,
-      '',
-      '?mode=signup'
-    );
-  }
+    function hideAllViews() {
+
+        const views = [
+            'login-view',
+            'signup-view',
+            'forgot-view',
+            'reset-view'
+        ];
+
+        views.forEach(function (viewId) {
+
+            const view = document.getElementById(viewId);
+
+            if (view) {
+                view.classList.add('hidden');
+            }
+
+        });
+
+    }
 
 
-  function showLogin() {
-    document.getElementById('signup-view').classList.add('hidden');
-    document.getElementById('login-view').classList.remove('hidden');
+    // ==========================================================
+    // SHOW LOGIN
+    // ==========================================================
 
-    history.replaceState(
-      null,
-      '',
-      '{% url "accounts:login" %}'
-    );
-  }
+    function showLogin() {
+
+        hideAllViews();
+
+        document
+            .getElementById('login-view')
+            .classList.remove('hidden');
+
+        history.replaceState(
+            null,
+            '',
+            '{% url "accounts:login" %}'
+        );
+
+    }
 
 
-  if (
-    new URLSearchParams(location.search).get('mode') === 'signup'
-  ) {
-    showSignup();
-  }
+    // ==========================================================
+    // SHOW SIGNUP
+    // ==========================================================
+
+    function showSignup() {
+
+        hideAllViews();
+
+        document
+            .getElementById('signup-view')
+            .classList.remove('hidden');
+
+        history.replaceState(
+            null,
+            '',
+            '{% url "accounts:login" %}?mode=signup'
+        );
+
+    }
+
+
+    // ==========================================================
+    // SHOW FORGOT PASSWORD
+    // ==========================================================
+
+    function showForgot() {
+
+        hideAllViews();
+
+        document
+            .getElementById('forgot-view')
+            .classList.remove('hidden');
+
+        history.replaceState(
+            null,
+            '',
+            '{% url "accounts:password_reset" %}'
+        );
+
+    }
+
+
+    // ==========================================================
+    // INITIAL VIEW ON PAGE LOAD
+    // ==========================================================
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const params = new URLSearchParams(
+            window.location.search
+        );
+
+        const mode = params.get('mode');
+
+        if (mode === 'signup') {
+
+            hideAllViews();
+
+            document
+                .getElementById('signup-view')
+                .classList.remove('hidden');
+
+        } else if (mode === 'forgot') {
+
+            hideAllViews();
+
+            document
+                .getElementById('forgot-view')
+                .classList.remove('hidden');
+
+        }
+
+    });
 
 </script>
 
