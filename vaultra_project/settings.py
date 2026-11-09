@@ -36,19 +36,19 @@ if not SECRET_KEY:
 # DEBUG
 # ============================================================
 
-DEBUG_VALUE = os.getenv(
-    "VAULTRA_DEBUG",
-    os.getenv("DEBUG", "False"),
-)
+# DEBUG_VALUE = os.getenv(
+#     "VAULTRA_DEBUG",
+#     os.getenv("DEBUG", "False"),
+# )
 
-DEBUG = DEBUG_VALUE.strip().lower() in (
-    "true",
-    "1",
-    "yes",
-    "on",
-)
+# DEBUG = DEBUG_VALUE.strip().lower() in (
+#     "true",
+#     "1",
+#     "yes",
+#     "on",
+# )
 
-# DEBUG = True
+DEBUG = False
 
 
 # ============================================================
