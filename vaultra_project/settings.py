@@ -36,17 +36,19 @@ if not SECRET_KEY:
 # DEBUG
 # ============================================================
 
-DEBUG_VALUE = os.getenv(
-    "VAULTRA_DEBUG",
-    os.getenv("DEBUG", "False"),
-)
+# DEBUG_VALUE = os.getenv(
+#     "VAULTRA_DEBUG",
+#     os.getenv("DEBUG", "False"),
+# )
 
-DEBUG = DEBUG_VALUE.strip().lower() in (
-    "true",
-    "1",
-    "yes",
-    "on",
-)
+# DEBUG = DEBUG_VALUE.strip().lower() in (
+#     "true",
+#     "1",
+#     "yes",
+#     "on",
+# )
+
+DEBUG = True
 
 
 # ============================================================
@@ -85,12 +87,7 @@ if (
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
-print("DEBUG ALLOWED_HOSTS:", ALLOWED_HOSTS)
-print("DEBUG RENDER HOST:", os.getenv("RENDER_EXTERNAL_HOSTNAME"))    
 
-print("VAULTRA_ALLOWED_HOSTS:", os.getenv("VAULTRA_ALLOWED_HOSTS"))
-print("ALLOWED_HOSTS ENV:", os.getenv("ALLOWED_HOSTS"))
-print("FINAL ALLOWED_HOSTS:", ALLOWED_HOSTS)
 
 
 # ============================================================
