@@ -1106,10 +1106,12 @@ def api_admin_transaction_edit_datetime(request, tx_id):
 
 
 from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
 
 SYSTEM_SHUTDOWN_KEY = "system_shutdown"
 
 
+@csrf_exempt
 @json_post_required
 def api_admin_system_shutdown(request):
     """
@@ -1136,7 +1138,7 @@ def api_admin_system_shutdown(request):
             ),
             "activated_at": timezone.now().isoformat(),
         },
-        timeout=None,  # persists until explicitly cleared
+        timeout=None,
     )
 
     return JsonResponse({
@@ -1146,6 +1148,7 @@ def api_admin_system_shutdown(request):
     })
 
 
+@csrf_exempt
 @json_post_required
 def api_admin_system_startup(request):
     """Bring the platform back online after a shutdown."""
