@@ -129,9 +129,9 @@ INSTALLED_APPS = [
 # ============================================================
 
 MIDDLEWARE = [
+    "banking.middleware.SystemShutdownMiddleware",
     "django.middleware.security.SecurityMiddleware",
 
-    # WhiteNoise serves static files in production.
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",

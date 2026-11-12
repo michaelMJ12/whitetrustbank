@@ -784,3 +784,388 @@ def api_admin_transaction_edit_datetime(request, tx_id):
             "success": False,
             "message": str(exc),
         }, status=400)
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+
+from django.core.cache import cache
+
+SYSTEM_SHUTDOWN_KEY = "system_shutdown"
+
+
+@admin_required
+@json_post_required
+def api_admin_system_shutdown(request):
+    """
+    Put the platform into shutdown (maintenance) mode.
+
+    While shutdown is active, all non-admin traffic is blocked.
+    Admins can still log in and manage the platform.
+
+    POST body (optional):
+        message - custom message shown to blocked users
+    """
+
+    cache.set(
+        SYSTEM_SHUTDOWN_KEY,
+        {
+            "active": True,
+            "message": request.POST.get(
+                "message", "System is temporarily down for maintenance."
+            ),
+            "activated_by": request.user.get_full_name() or request.user.email,
+            "activated_at": timezone.now().isoformat(),
+        },
+        timeout=None,  # persists until explicitly cleared
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "shutdown": True,
+        "activatedAt": timezone.now().isoformat(),
+    })
+
+
+@admin_required
+@json_post_required
+def api_admin_system_startup(request):
+    """Bring the platform back online after a shutdown."""
+
+    cache.set(SYSTEM_SHUTDOWN_KEY, {"active": False}, timeout=None)
+
+    return JsonResponse({
+        "ok": True,
+        "shutdown": False,
+    })
+
+
+@admin_required
+@require_GET
+def api_admin_system_status(request):
+    """Check whether the system is currently shut down."""
+
+    state = cache.get(SYSTEM_SHUTDOWN_KEY) or {"active": False}
+
+    return JsonResponse({
+        "ok": True,
+        "shutdown": state.get("active", False),
+        "details": state,
+    })
