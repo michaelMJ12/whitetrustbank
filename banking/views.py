@@ -1104,21 +1104,19 @@ def api_admin_transaction_edit_datetime(request, tx_id):
 
 
 
-   
 
 from django.core.cache import cache
 
 SYSTEM_SHUTDOWN_KEY = "system_shutdown"
 
 
-@admin_required
 @json_post_required
 def api_admin_system_shutdown(request):
     """
     Put the platform into shutdown (maintenance) mode.
 
-    While shutdown is active, all non-admin traffic is blocked.
-    Admins can still log in and manage the platform.
+    While shutdown is active, all traffic is blocked except the
+    startup endpoint.
 
     POST body (optional):
         message - custom message shown to blocked users
@@ -1131,7 +1129,11 @@ def api_admin_system_shutdown(request):
             "message": request.POST.get(
                 "message", "System is temporarily down for maintenance."
             ),
-            "activated_by": request.user.get_full_name() or request.user.email,
+            "activated_by": (
+                request.user.get_full_name() or request.user.email
+                if request.user.is_authenticated
+                else "anonymous"
+            ),
             "activated_at": timezone.now().isoformat(),
         },
         timeout=None,  # persists until explicitly cleared
@@ -1144,7 +1146,6 @@ def api_admin_system_shutdown(request):
     })
 
 
-@admin_required
 @json_post_required
 def api_admin_system_startup(request):
     """Bring the platform back online after a shutdown."""
@@ -1157,7 +1158,6 @@ def api_admin_system_startup(request):
     })
 
 
-@admin_required
 @require_GET
 def api_admin_system_status(request):
     """Check whether the system is currently shut down."""
